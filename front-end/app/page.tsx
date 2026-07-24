@@ -2,20 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { 
-  User, 
-  Mail, 
-  Lock, 
-  GraduationCap, 
-  LogIn, 
-  Users, 
-  BookOpen, 
-  Award,
-  Sparkles,
-  Zap,
-  ArrowRight,
-  CheckCircle
-} from "lucide-react"
 
 type UserRole = "ORIENTADOR" | "MENTOR" | "CALOURO"
 
@@ -46,186 +32,350 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0">
-        <div className="absolute top-[-40%] right-[-20%] w-[800px] h-[800px] bg-[#5531cc] rounded-full blur-[120px] opacity-20 animate-float" />
-        <div className="absolute bottom-[-40%] left-[-20%] w-[800px] h-[800px] bg-[#d3fc72] rounded-full blur-[120px] opacity-10 animate-float-delayed" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#5531cc] rounded-full blur-[100px] opacity-5" />
-      </div>
+    <div style={{
+      minHeight: "100vh",
+      background: "black",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px",
+      position: "relative",
+      overflow: "hidden"
+    }}>
+      {/* Fundo com efeitos */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        background: "radial-gradient(circle at 30% 50%, #5531cc33 0%, transparent 60%)",
+      }} />
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        background: "radial-gradient(circle at 70% 50%, #d3fc7211 0%, transparent 60%)",
+      }} />
 
-      {/* Grid Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')]" />
-
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 min-h-screen flex items-center">
-        <div className="grid lg:grid-cols-2 gap-20 items-center w-full max-w-6xl mx-auto">
-          
-          {/* Left Side */}
-          <div className="space-y-12">
-            {/* Logo */}
-            <div className="flex items-center gap-4 animate-slide-up">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#d3fc72] to-[#5531cc] flex items-center justify-center">
-                <GraduationCap className="w-8 h-8 text-black" />
-              </div>
-              <div>
-                <h1 className="text-5xl font-bold tracking-tight">
-                  <span className="text-[#d3fc72]">Padawan</span>
-                  <span className="text-white"> ON</span>
-                </h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <Sparkles className="w-4 h-4 text-[#d3fc72]" />
-                  <span className="text-sm text-white/40">Sistema de Gestão</span>
-                </div>
-              </div>
+      {/* Conteúdo principal */}
+      <div style={{
+        position: "relative",
+        zIndex: 10,
+        width: "100%",
+        maxWidth: "1200px",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "60px",
+        alignItems: "center"
+      }}>
+        
+        {/* Lado esquerdo */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
+          {/* Logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{
+              width: "64px",
+              height: "64px",
+              borderRadius: "16px",
+              background: "linear-gradient(135deg, #d3fc72, #5531cc)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}>
+              <span style={{ fontSize: "32px" }}>🎓</span>
             </div>
-
-            {/* Hero Text */}
-            <div className="space-y-6 animate-slide-up animation-delay-200">
-              <h2 className="text-7xl font-bold leading-[1.1]">
-                <span className="text-white">Programa</span>
-                <br />
-                <span className="gradient-text">Padawan</span>
-              </h2>
-              <p className="text-lg text-white/50 max-w-md leading-relaxed">
-                Plataforma integrada para orientadores, mentores e calouros do programa de extensão da UNICAP
+            <div>
+              <h1 style={{ fontSize: "48px", fontWeight: "bold" }}>
+                <span style={{ color: "#d3fc72" }}>Padawan</span>
+                <span style={{ color: "white" }}> ON</span>
+              </h1>
+              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>
+                Sistema de Gestão
               </p>
             </div>
-
-            {/* Features */}
-            <div className="grid grid-cols-3 gap-4 animate-slide-up animation-delay-400">
-              {[
-                { icon: Users, label: "Orientadores", desc: "Gestão" },
-                { icon: BookOpen, label: "Mentores", desc: "Acompanhamento" },
-                { icon: Award, label: "Calouros", desc: "Suporte" },
-              ].map((item, i) => (
-                <div key={i} className="card-modern p-5 group">
-                  <item.icon className="w-6 h-6 text-[#d3fc72] mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="text-white font-semibold text-sm">{item.label}</p>
-                  <p className="text-white/30 text-xs">{item.desc}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
-          {/* Right Side - Login Form */}
-          <div className="card-modern p-8 lg:p-10 animate-slide-up animation-delay-600">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-[#d3fc72]/10 text-[#d3fc72] px-4 py-1.5 rounded-full text-xs font-medium mb-4 border border-[#d3fc72]/10">
-                <Zap className="w-3 h-3" />
-                Acesso Seguro
+          {/* Texto principal */}
+          <div>
+            <h2 style={{
+              fontSize: "64px",
+              fontWeight: "bold",
+              lineHeight: 1.1
+            }}>
+              <span style={{ color: "white" }}>Programa</span>
+              <br />
+              <span style={{
+                background: "linear-gradient(135deg, #d3fc72, #5531cc)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent"
+              }}>Padawan</span>
+            </h2>
+            <p style={{
+              color: "rgba(255,255,255,0.5)",
+              fontSize: "18px",
+              marginTop: "16px",
+              maxWidth: "400px"
+            }}>
+              Plataforma integrada para orientadores, mentores e calouros do programa de extensão da UNICAP
+            </p>
+          </div>
+
+          {/* Cards */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "16px"
+          }}>
+            {[
+              { label: "Orientadores", desc: "Gestão" },
+              {  label: "Mentores", desc: "Acompanhamento" },
+              { label: "Calouros", desc: "Suporte" },
+            ].map((item, i) => (
+              <div key={i} style={{
+                background: "rgba(255,255,255,0.03)",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,0.05)",
+                borderRadius: "16px",
+                padding: "20px",
+                textAlign: "center"
+              }}>
+                <div style={{ fontSize: "28px", marginBottom: "8px" }}>{item.icon}</div>
+                <p style={{ color: "white", fontWeight: "600", fontSize: "14px" }}>{item.label}</p>
+                <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>{item.desc}</p>
               </div>
-              <h3 className="text-2xl font-bold text-white">Bem-vindo de volta</h3>
-              <p className="text-white/40 mt-1 text-sm">Entre com suas credenciais</p>
+            ))}
+          </div>
+        </div>
+
+        {/* Lado direito - Login */}
+        <div style={{
+          background: "rgba(255,255,255,0.03)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.05)",
+          borderRadius: "24px",
+          padding: "48px"
+        }}>
+          <div style={{ textAlign: "center", marginBottom: "32px" }}>
+            <div style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              background: "rgba(211,252,114,0.1)",
+              color: "#d3fc72",
+              padding: "6px 16px",
+              borderRadius: "20px",
+              fontSize: "12px",
+              fontWeight: "500",
+              marginBottom: "16px"
+            }}>
+               Acesso Seguro
+            </div>
+            <h3 style={{ fontSize: "24px", fontWeight: "bold", color: "white" }}>
+              Bem-vindo de volta
+            </h3>
+            <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
+              Entre com suas credenciais
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            {/* Nome */}
+            <div>
+              <label style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "rgba(255,255,255,0.6)",
+                marginBottom: "6px"
+              }}>
+                 Nome de Usuário
+              </label>
+              <input
+                type="text"
+                placeholder="Digite seu nome"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "white",
+                  fontSize: "14px"
+                }}
+                value={formData.nome}
+                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                required
+              />
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Nome */}
-              <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
-                  <User className="w-4 h-4 inline mr-2" />
-                  Nome de Usuário
-                </label>
-                <input
-                  type="text"
-                  placeholder="Digite seu nome"
-                  className="input-modern w-full px-4 py-3 rounded-xl text-white placeholder-white/30"
-                  value={formData.nome}
-                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  required
-                />
-              </div>
+            {/* RA */}
+            <div>
+              <label style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "rgba(255,255,255,0.6)",
+                marginBottom: "6px"
+              }}>
+                 RA / Matrícula
+              </label>
+              <input
+                type="text"
+                placeholder="Digite seu RA"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "white",
+                  fontSize: "14px"
+                }}
+                value={formData.ra}
+                onChange={(e) => setFormData({ ...formData, ra: e.target.value })}
+                required
+              />
+            </div>
 
-              {/* RA */}
-              <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
-                  <Mail className="w-4 h-4 inline mr-2" />
-                  RA / Matrícula
-                </label>
-                <input
-                  type="text"
-                  placeholder="Digite seu RA"
-                  className="input-modern w-full px-4 py-3 rounded-xl text-white placeholder-white/30"
-                  value={formData.ra}
-                  onChange={(e) => setFormData({ ...formData, ra: e.target.value })}
-                  required
-                />
-              </div>
+            {/* Senha */}
+            <div>
+              <label style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "rgba(255,255,255,0.6)",
+                marginBottom: "6px"
+              }}>
+                 Senha
+              </label>
+              <input
+                type="password"
+                placeholder="Digite sua senha"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "white",
+                  fontSize: "14px"
+                }}
+                value={formData.senha}
+                onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
+                required
+              />
+            </div>
 
-              {/* Senha */}
-              <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
-                  <Lock className="w-4 h-4 inline mr-2" />
-                  Senha
-                </label>
-                <input
-                  type="password"
-                  placeholder="Digite sua senha"
-                  className="input-modern w-full px-4 py-3 rounded-xl text-white placeholder-white/30"
-                  value={formData.senha}
-                  onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
-                  required
-                />
-              </div>
-
-              {/* Role */}
-              <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
-                  <GraduationCap className="w-4 h-4 inline mr-2" />
-                  Tipo de Usuário
-                </label>
-                <select
-                  className="input-modern w-full px-4 py-3 rounded-xl text-white bg-black/50"
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                  required
-                >
-                  <option value="" className="bg-black">Selecione seu perfil</option>
-                  <option value="ORIENTADOR" className="bg-black">👨‍🏫 Orientador</option>
-                  <option value="MENTOR" className="bg-black">🧑‍🎓 Mentor</option>
-                  <option value="CALOURO" className="bg-black">👶 Calouro</option>
-                </select>
-              </div>
-
-              {/* Submit */}
-              <button
-                type="submit"
-                className="btn-primary w-full py-3.5 rounded-xl text-base flex items-center justify-center gap-2"
-                disabled={isLoading}
+            {/* Role */}
+            <div>
+              <label style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "rgba(255,255,255,0.6)",
+                marginBottom: "6px"
+              }}>
+                 Tipo de Usuário
+              </label>
+              <select
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "white",
+                  fontSize: "14px"
+                }}
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                required
               >
-                {isLoading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                    Entrando...
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="w-5 h-5" />
-                    Entrar no Sistema
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
+                <option value="" style={{ background: "#1a1a1a" }}>Selecione seu perfil</option>
+                <option value="ORIENTADOR" style={{ background: "#1a1a1a" }}>👨‍🏫 Orientador</option>
+                <option value="MENTOR" style={{ background: "#1a1a1a" }}>🧑‍🎓 Mentor</option>
+                <option value="CALOURO" style={{ background: "#1a1a1a" }}>👶 Calouro</option>
+              </select>
+            </div>
 
-              {/* Footer */}
-              <div className="text-center text-xs text-white/30 pt-2">
-                <p>
-                  Programa de Extensão Padawan
-                  <br />
-                  <span className="text-[#5531cc]">Ciência da Computação - UNICAP</span>
-                </p>
-              </div>
-            </form>
-          </div>
+            {/* Botão */}
+            <button
+              type="submit"
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "12px",
+                background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
+                color: "black",
+                fontWeight: "600",
+                fontSize: "16px",
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px"
+              }}
+              disabled={isLoading}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.02)"
+                e.currentTarget.style.boxShadow = "0 0 40px rgba(211,252,114,0.3)"
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)"
+                e.currentTarget.style.boxShadow = "none"
+              }}
+            >
+              {isLoading ? (
+                <>
+                  <span style={{
+                    width: "20px",
+                    height: "20px",
+                    border: "2px solid rgba(0,0,0,0.3)",
+                    borderTop: "2px solid black",
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    animation: "spin 1s linear infinite"
+                  }} />
+                  Entrando...
+                </>
+              ) : (
+                <>
+                  Entrar no Sistema
+                </>
+              )}
+            </button>
+
+            <p style={{
+              textAlign: "center",
+              fontSize: "12px",
+              color: "rgba(255,255,255,0.2)",
+              marginTop: "8px"
+            }}>
+              Programa de Extensão Padawan<br />
+              <span style={{ color: "#5531cc" }}>Ciência da Computação - UNICAP</span>
+            </p>
+          </form>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-6 left-0 right-0 text-center text-white/10 text-sm">
-        <p>© 2024 Padawan ON</p>
+      <div style={{
+        position: "absolute",
+        bottom: "24px",
+        left: 0,
+        right: 0,
+        textAlign: "center",
+        color: "rgba(255,255,255,0.1)",
+        fontSize: "12px"
+      }}>
+        © 2024 Padawan ON
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 }
