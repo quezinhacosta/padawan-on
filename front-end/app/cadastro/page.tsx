@@ -4,31 +4,36 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
-type UserRole = "ORIENTADOR" | "MENTOR" | "CALOURO"
-
-export default function Home() {
+export default function Cadastro() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
-    nome: "",
+    nomeUsuario: "",
+    nomeCompleto: "",
     ra: "",
     senha: "",
-    role: "" as UserRole | "",
+    confirmarSenha: "",
   })
+  const [erro, setErro] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErro("")
+
+    if (formData.senha !== formData.confirmarSenha) {
+      setErro("As senhas não coincidem")
+      return
+    }
+
+    if (formData.senha.length < 6) {
+      setErro("A senha deve ter pelo menos 6 caracteres")
+      return
+    }
+
     setIsLoading(true)
-    
     setTimeout(() => {
       setIsLoading(false)
-      if (formData.role === "ORIENTADOR") {
-        router.push("/dashboard/orientador")
-      } else if (formData.role === "MENTOR") {
-        router.push("/dashboard/mentor")
-      } else if (formData.role === "CALOURO") {
-        router.push("/dashboard/calouro")
-      }
+      router.push("/dashboard/calouro")
     }, 1500)
   }
 
@@ -60,92 +65,9 @@ export default function Home() {
         position: "relative",
         zIndex: 10,
         width: "100%",
-        maxWidth: "1200px",
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "60px",
-        alignItems: "center"
+        maxWidth: "500px",
       }}>
-        
-        {/* Lado esquerdo */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
-          {/* Logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <div style={{
-              width: "64px",
-              height: "64px",
-              borderRadius: "16px",
-              background: "linear-gradient(135deg, #d3fc72, #5531cc)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}>
-              <span style={{ fontSize: "32px" }}>🎓</span>
-            </div>
-            <div>
-              <h1 style={{ fontSize: "48px", fontWeight: "bold" }}>
-                <span style={{ color: "#d3fc72" }}>Padawan</span>
-                <span style={{ color: "white" }}> ON</span>
-              </h1>
-              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>
-                Sistema de Gestão
-              </p>
-            </div>
-          </div>
-
-          {/* Texto principal */}
-          <div>
-            <h2 style={{
-              fontSize: "64px",
-              fontWeight: "bold",
-              lineHeight: 1.1
-            }}>
-              <span style={{ color: "white" }}>Programa</span>
-              <br />
-              <span style={{
-                background: "linear-gradient(135deg, #d3fc72, #5531cc)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent"
-              }}>Padawan</span>
-            </h2>
-            <p style={{
-              color: "rgba(255,255,255,0.5)",
-              fontSize: "18px",
-              marginTop: "16px",
-              maxWidth: "400px"
-            }}>
-              Plataforma integrada para orientadores, mentores e calouros do programa de extensão da UNICAP
-            </p>
-          </div>
-
-          {/* Cards */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "16px"
-          }}>
-            {[
-              {label: "Orientadores", desc: "Gestão" },
-              {label: "Mentores", desc: "Acompanhamento" },
-              {label: "Calouros", desc: "Suporte" },
-            ].map((item, i) => (
-              <div key={i} style={{
-                background: "rgba(255,255,255,0.03)",
-                backdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.05)",
-                borderRadius: "16px",
-                padding: "20px",
-                textAlign: "center"
-              }}>
-                <div style={{ fontSize: "28px", marginBottom: "8px" }}>{item.icon}</div>
-                <p style={{ color: "white", fontWeight: "600", fontSize: "14px" }}>{item.label}</p>
-                <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Lado direito - Login */}
+        {/* Card de Cadastro */}
         <div style={{
           background: "rgba(255,255,255,0.03)",
           backdropFilter: "blur(20px)",
@@ -166,17 +88,79 @@ export default function Home() {
               fontWeight: "500",
               marginBottom: "16px"
             }}>
-               Acesso Seguro
+              Cadastro
             </div>
             <h3 style={{ fontSize: "24px", fontWeight: "bold", color: "white" }}>
-              Bem-vindo de volta
+              Criar conta
             </h3>
             <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
-              Entre com suas credenciais
+              Apenas calouros podem se cadastrar
             </p>
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            {/* Nome de Usuário */}
+            <div>
+              <label style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "rgba(255,255,255,0.6)",
+                marginBottom: "6px"
+              }}>
+                 Nome de Usuário
+              </label>
+              <input
+                type="text"
+                placeholder="Escolha um nome de usuário"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "white",
+                  fontSize: "14px",
+                  outline: "none",
+                  transition: "all 0.3s ease"
+                }}
+                value={formData.nomeUsuario}
+                onChange={(e) => setFormData({ ...formData, nomeUsuario: e.target.value })}
+                required
+              />
+            </div>
+
+            {/* Nome Completo */}
+            <div>
+              <label style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "rgba(255,255,255,0.6)",
+                marginBottom: "6px"
+              }}>
+                Nome Completo
+              </label>
+              <input
+                type="text"
+                placeholder="Digite seu nome completo"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "white",
+                  fontSize: "14px",
+                  outline: "none",
+                  transition: "all 0.3s ease"
+                }}
+                value={formData.nomeCompleto}
+                onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
+                required
+              />
+            </div>
+
             {/* RA */}
             <div>
               <label style={{
@@ -186,7 +170,7 @@ export default function Home() {
                 color: "rgba(255,255,255,0.6)",
                 marginBottom: "6px"
               }}>
-                 RA / Matrícula
+                RA / Matrícula
               </label>
               <input
                 type="text"
@@ -217,11 +201,11 @@ export default function Home() {
                 color: "rgba(255,255,255,0.6)",
                 marginBottom: "6px"
               }}>
-                 Senha
+                Senha
               </label>
               <input
                 type="password"
-                placeholder="Digite sua senha"
+                placeholder="Crie uma senha (mínimo 6 caracteres)"
                 style={{
                   width: "100%",
                   padding: "12px 16px",
@@ -236,10 +220,11 @@ export default function Home() {
                 value={formData.senha}
                 onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
                 required
+                minLength={6}
               />
             </div>
 
-            {/* Role */}
+            {/* Confirmar Senha */}
             <div>
               <label style={{
                 display: "block",
@@ -248,9 +233,11 @@ export default function Home() {
                 color: "rgba(255,255,255,0.6)",
                 marginBottom: "6px"
               }}>
-                 Tipo de Usuário
+                Confirmar Senha
               </label>
-              <select
+              <input
+                type="password"
+                placeholder="Digite a senha novamente"
                 style={{
                   width: "100%",
                   padding: "12px 16px",
@@ -262,16 +249,26 @@ export default function Home() {
                   outline: "none",
                   transition: "all 0.3s ease"
                 }}
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                value={formData.confirmarSenha}
+                onChange={(e) => setFormData({ ...formData, confirmarSenha: e.target.value })}
                 required
-              >
-                <option value="" style={{ background: "#1a1a1a" }}>Selecione seu perfil</option>
-                <option value="ORIENTADOR" style={{ background: "#1a1a1a" }}> Orientador</option>
-                <option value="MENTOR" style={{ background: "#1a1a1a" }}> Mentor</option>
-                <option value="CALOURO" style={{ background: "#1a1a1a" }}> Calouro</option>
-              </select>
+              />
             </div>
+
+            {/* Mensagem de erro */}
+            {erro && (
+              <div style={{
+                padding: "12px",
+                borderRadius: "12px",
+                background: "rgba(255,0,0,0.1)",
+                border: "1px solid rgba(255,0,0,0.2)",
+                color: "#ff6b6b",
+                fontSize: "14px",
+                textAlign: "center"
+              }}>
+                {erro}
+              </div>
+            )}
 
             {/* Botão */}
             <button
@@ -313,21 +310,21 @@ export default function Home() {
                     display: "inline-block",
                     animation: "spin 1s linear infinite"
                   }} />
-                  Ficando ON....
+                  Cadastrando...
                 </>
               ) : (
-                <>
-                  Ficar ON
-                </>
+                "Criar Conta"
               )}
             </button>
+
+            {/* Link para login */}
             <div style={{
               textAlign: "center",
               fontSize: "14px",
               color: "rgba(255,255,255,0.4)"
             }}>
-              Não tem uma conta?{" "}
-              <Link href="/cadastro" style={{
+              Já tem uma conta?{" "}
+              <Link href="/" style={{
                 color: "#d3fc72",
                 textDecoration: "none",
                 fontWeight: "500",
@@ -336,7 +333,7 @@ export default function Home() {
               onMouseEnter={(e) => e.currentTarget.style.color = "#a8e04a"}
               onMouseLeave={(e) => e.currentTarget.style.color = "#d3fc72"}
               >
-                Cadastre-se
+                Faça login
               </Link>
             </div>
 

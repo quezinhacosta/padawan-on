@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Padawan ON - Sistema de Gestão",
+  title: "Padawan ON",
   description: "Plataforma de gestão do programa de extensão Padawan - UNICAP",
   keywords: "Padawan, UNICAP, extensão, gestão, orientadores, mentores, calouros",
   authors: [{ name: "Padawan ON Team" }],
