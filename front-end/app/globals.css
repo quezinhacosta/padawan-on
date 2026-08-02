@@ -2,15 +2,461 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Reset básico */
+/* ============================================
+   RESET E CONFIGURAÇÕES GERAIS
+   ============================================ */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+:root {
+  /* Cores Principais */
+  --color-primary: #d3fc72;
+  --color-primary-dark: #a8e04a;
+  --color-primary-glow: rgba(211, 252, 114, 0.15);
+  --color-secondary: #5531cc;
+  --color-secondary-dark: #3d1f99;
+  --color-secondary-glow: rgba(85, 49, 204, 0.2);
+  
+  /* Cores Neutras */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-gray-50: rgba(255, 255, 255, 0.05);
+  --color-gray-100: rgba(255, 255, 255, 0.1);
+  --color-gray-200: rgba(255, 255, 255, 0.2);
+  --color-gray-300: rgba(255, 255, 255, 0.3);
+  --color-gray-400: rgba(255, 255, 255, 0.4);
+  --color-gray-500: rgba(255, 255, 255, 0.5);
+  --color-gray-600: rgba(255, 255, 255, 0.6);
+  --color-gray-700: rgba(255, 255, 255, 0.7);
+  --color-gray-800: rgba(255, 255, 255, 0.8);
+  --color-gray-900: rgba(255, 255, 255, 0.9);
+  
+  /* Espaçamentos */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  
+  /* Bordas */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+  
+  /* Transições */
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+html,
 body {
-  background: black;
-  color: white;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  height: 100%;
+  background: var(--color-black);
+  color: var(--color-white);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADA
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-secondary);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary-dark);
+}
+
+/* ============================================
+   ANIMAÇÕES GLOBAIS
+   ============================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* ============================================
+   COMPONENTES DE BACKGROUND
+   ============================================ */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+}
+
+.bg-gradient-primary-glow {
+  background: radial-gradient(circle at 30% 50%, var(--color-secondary-glow) 0%, transparent 60%);
+}
+
+.bg-gradient-secondary-glow {
+  background: radial-gradient(circle at 70% 50%, var(--color-primary-glow) 0%, transparent 60%);
+}
+
+.bg-glass {
+  background: var(--color-gray-50);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-gray-100);
+}
+
+.bg-glass-light {
+  background: var(--color-gray-50);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--color-gray-100);
+}
+
+/* ============================================
+   COMPONENTES DE TEXTO
+   ============================================ */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-secondary {
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   COMPONENTES DE INPUT
+   ============================================ */
+.input-modern {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-100);
+  color: var(--color-white);
+  font-size: 14px;
+  outline: none;
+  transition: all var(--transition-base);
+}
+
+.input-modern:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.input-modern::placeholder {
+  color: var(--color-gray-300);
+}
+
+.input-modern:hover:not(:focus) {
+  border-color: var(--color-gray-200);
+}
+
+/* ============================================
+   COMPONENTES DE SELECT
+   ============================================ */
+.select-modern {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-100);
+  color: var(--color-white);
+  font-size: 14px;
+  outline: none;
+  transition: all var(--transition-base);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.4)' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+.select-modern:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.select-modern option {
+  background: #1a1a1a;
+  color: var(--color-white);
+}
+
+/* ============================================
+   COMPONENTES DE BOTÃO
+   ============================================ */
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--color-black);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left var(--transition-slow);
+}
+
+.btn-primary:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 0 40px var(--color-primary-glow);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   COMPONENTES DE CARD
+   ============================================ */
+.card-modern {
+  background: var(--color-gray-50);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--color-gray-100);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-base);
+}
+
+.card-modern:hover {
+  background: var(--color-gray-100);
+  transform: translateY(-2px);
+  border-color: var(--color-gray-200);
+}
+
+/* ============================================
+   COMPONENTES DE LINK
+   ============================================ */
+.link-modern {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.link-modern::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-primary);
+  transition: width var(--transition-base);
+}
+
+.link-modern:hover::after {
+  width: 100%;
+}
+
+.link-modern:hover {
+  color: var(--color-primary-dark);
+}
+
+/* ============================================
+   COMPONENTES DE LABEL
+   ============================================ */
+.label-modern {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* ============================================
+   COMPONENTES DE BADGE
+   ============================================ */
+.badge-modern {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-primary-glow);
+  color: var(--color-primary);
+}
+
+/* ============================================
+   COMPONENTES DE LOADING
+   ============================================ */
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  border-top: 2px solid var(--color-black);
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner-light {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top: 2px solid var(--color-primary);
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+/* ============================================
+   LAYOUT UTILITIES
+   ============================================ */
+.container-modern {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grid-modern {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+@media (max-width: 1024px) {
+  .container-modern {
+    padding: 0 var(--spacing-md);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-modern {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --spacing-2xl: 24px;
+    --spacing-3xl: 32px;
+  }
+}
+
+/* ============================================
+   FOCUS VISIBLE PARA ACESSIBILIDADE
+   ============================================ */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   SELECTION
+   ============================================ */
+::selection {
+  background: var(--color-primary);
+  color: var(--color-black);
 }
