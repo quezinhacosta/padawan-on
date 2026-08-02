@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 interface CalouroInfo {
   nome: string
@@ -28,13 +27,11 @@ interface Recurso {
   id: string
   titulo: string
   tipo: "VIDEO" | "DOCUMENTO" | "LINK" | "EXERCICIO"
-  url: string
   descricao: string
 }
 
 export default function CalouroDashboard() {
-  const router = useRouter()
-  const [calouro, setCalouro] = useState<CalouroInfo>({
+  const [calouro] = useState<CalouroInfo>({
     nome: "Maria Santos",
     ra: "2024001",
     curso: "Ciência da Computação",
@@ -45,7 +42,8 @@ export default function CalouroDashboard() {
       disponivel: true
     }
   })
-  const [encontros, setEncontros] = useState<Encontro[]>([
+
+  const [encontros] = useState<Encontro[]>([
     {
       id: "1",
       titulo: "Introdução à Programação",
@@ -61,69 +59,76 @@ export default function CalouroDashboard() {
       data: "2024-12-10T10:00:00",
       status: "REALIZADO",
       local: "Sala 205 - Bloco B"
+    },
+    {
+      id: "3",
+      titulo: "Projeto Final",
+      descricao: "Acompanhamento do projeto final da disciplina",
+      data: "2024-12-20T16:00:00",
+      status: "AGENDADO",
+      local: "Sala 301 - Bloco A"
     }
   ])
-  const [recursos, setRecursos] = useState<Recurso[]>([
+
+  const [recursos] = useState<Recurso[]>([
     {
       id: "1",
       titulo: "Algoritmos e Lógica de Programação",
       tipo: "DOCUMENTO",
-      url: "#",
-      descricao: "Material completo sobre algoritmos"
+      descricao: "Material completo sobre algoritmos para iniciantes"
     },
     {
       id: "2",
       titulo: "Introdução ao Python",
       tipo: "VIDEO",
-      url: "#",
       descricao: "Vídeo tutorial de Python para iniciantes"
     },
     {
       id: "3",
-      titulo: "Exercícios de Fixação",
+      titulo: "Lista de Exercícios",
       tipo: "EXERCICIO",
-      url: "#",
-      descricao: "Lista de exercícios para praticar"
+      descricao: "Exercícios para praticar lógica de programação"
+    },
+    {
+      id: "4",
+      titulo: "Documentação Oficial",
+      tipo: "LINK",
+      descricao: "Links úteis para documentação das tecnologias"
     }
   ])
-  const [showMensagem, setShowMensagem] = useState(false)
 
   return (
     <div>
       {/* Header */}
-      <div style={{ marginBottom: "32px" }}>
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "start"
-        }}>
-          <div>
-            <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-              Olá, {calouro.nome}! 👋
-            </h1>
-            <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
-              {calouro.curso} - {calouro.periodo} • RA: {calouro.ra}
-            </p>
-          </div>
-          <button
-            onClick={() => setShowMensagem(true)}
-            style={{
-              padding: "10px 20px",
-              borderRadius: "12px",
-              background: "linear-gradient(135deg, #5531cc, #3d1f99)",
-              color: "white",
-              fontWeight: "600",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "14px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px"
-            }}
-          >
-            💬 Falar com Mentor
-          </button>
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "32px"
+      }}>
+        <div>
+          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
+            👋 Olá, {calouro.nome}!
+          </h1>
+          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
+            {calouro.curso} - {calouro.periodo} • RA: {calouro.ra}
+          </p>
         </div>
+        <button style={{
+          padding: "10px 20px",
+          borderRadius: "12px",
+          background: "linear-gradient(135deg, #5531cc, #3d1f99)",
+          color: "white",
+          fontWeight: "600",
+          border: "none",
+          cursor: "pointer",
+          fontSize: "14px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px"
+        }}>
+          💬 Falar com Mentor
+        </button>
       </div>
 
       {/* Informações do Mentor */}
@@ -188,14 +193,14 @@ export default function CalouroDashboard() {
       }}>
         <CalouroCard
           icon="📚"
-          label="Encontros Realizados"
+          label="Encontros"
           value="12"
           detail="Próximo: Amanhã"
           color="#d3fc72"
         />
         <CalouroCard
           icon="⭐"
-          label="Progresso no Curso"
+          label="Progresso"
           value="65%"
           detail="4 módulos concluídos"
           color="#5531cc"
@@ -313,7 +318,7 @@ export default function CalouroDashboard() {
 
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(4, 1fr)",
           gap: "16px"
         }}>
           {recursos.map((recurso) => (
@@ -332,10 +337,9 @@ export default function CalouroDashboard() {
             onMouseLeave={(e) => {
               e.currentTarget.style.background = "rgba(255,255,255,0.02)"
               e.currentTarget.style.transform = "translateY(0)"
-            }}
-            >
+            }}>
               <div style={{
-                fontSize: "28px",
+                fontSize: "32px",
                 marginBottom: "8px"
               }}>
                 {recurso.tipo === "VIDEO" && "🎥"}
@@ -355,3 +359,36 @@ export default function CalouroDashboard() {
                 padding: "2px 8px",
                 borderRadius: "12px",
                 background: "rgba(255,255,255,0.05)",
+                color: "rgba(255,255,255,0.4)",
+                fontSize: "11px"
+              }}>
+                {recurso.tipo === "VIDEO" && " Vídeo"}
+                {recurso.tipo === "DOCUMENTO" && " Documento"}
+                {recurso.tipo === "LINK" && "Link"}
+                {recurso.tipo === "EXERCICIO" && "Exercício"}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CalouroCard({ icon, label, value, detail, color }: any) {
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.03)",
+      borderRadius: "16px",
+      padding: "20px",
+      border: "1px solid rgba(255,255,255,0.05)"
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+        <span style={{ fontSize: "24px" }}>{icon}</span>
+        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>{label}</p>
+      </div>
+      <p style={{ fontSize: "32px", fontWeight: "bold", color: "white" }}>{value}</p>
+      <p style={{ color: color, fontSize: "12px", marginTop: "4px" }}>{detail}</p>
+    </div>
+  )
+}

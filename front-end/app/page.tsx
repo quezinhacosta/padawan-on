@@ -19,15 +19,24 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
     setTimeout(() => {
       setIsLoading(false)
+      const userData = {
+        id: "1",
+        nome: formData.nome || "Usuário",
+        ra: formData.ra,
+        role: formData.role,
+      }
+      localStorage.setItem("user", JSON.stringify(userData))
+    
       if (formData.role === "ORIENTADOR") {
-        router.push("/dashboard/orientador")
+        router.push("/dashboard")
       } else if (formData.role === "MENTOR") {
         router.push("/dashboard/mentor")
       } else if (formData.role === "CALOURO") {
         router.push("/dashboard/calouro")
+      } else {
+        router.push("/")
       }
     }, 1500)
   }
@@ -43,7 +52,6 @@ export default function Home() {
       position: "relative",
       overflow: "hidden"
     }}>
-      {/* Fundo com efeitos */}
       <div style={{
         position: "absolute",
         inset: 0,
@@ -54,8 +62,6 @@ export default function Home() {
         inset: 0,
         background: "radial-gradient(circle at 70% 50%, #d3fc7211 0%, transparent 60%)",
       }} />
-
-      {/* Conteúdo principal */}
       <div style={{
         position: "relative",
         zIndex: 10,
@@ -66,10 +72,8 @@ export default function Home() {
         gap: "60px",
         alignItems: "center"
       }}>
-        
-        {/* Lado esquerdo */}
+      
         <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
-          {/* Logo */}
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <div style={{
               width: "64px",
@@ -92,8 +96,6 @@ export default function Home() {
               </p>
             </div>
           </div>
-
-          {/* Texto principal */}
           <div>
             <h2 style={{
               fontSize: "64px",
@@ -125,9 +127,9 @@ export default function Home() {
             gap: "16px"
           }}>
             {[
-              {label: "Orientadores", desc: "Gestão" },
-              {label: "Mentores", desc: "Acompanhamento" },
-              {label: "Calouros", desc: "Suporte" },
+              { label: "Orientadores", desc: "Gestão" },
+              { label: "Mentores", desc: "Acompanhamento" },
+              { label: "Calouros", desc: "Suporte" },
             ].map((item, i) => (
               <div key={i} style={{
                 background: "rgba(255,255,255,0.03)",
@@ -177,6 +179,36 @@ export default function Home() {
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            {/* Nome (opcional para teste) */}
+            <div>
+              <label style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "rgba(255,255,255,0.6)",
+                marginBottom: "6px"
+              }}>
+                  Nome (opcional)
+              </label>
+              <input
+                type="text"
+                placeholder="Digite seu nome"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "white",
+                  fontSize: "14px",
+                  outline: "none",
+                  transition: "all 0.3s ease"
+                }}
+                value={formData.nome}
+                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+              />
+            </div>
+
             {/* RA */}
             <div>
               <label style={{
@@ -267,8 +299,8 @@ export default function Home() {
                 required
               >
                 <option value="" style={{ background: "#1a1a1a" }}>Selecione seu perfil</option>
-                <option value="ORIENTADOR" style={{ background: "#1a1a1a" }}> Orientador</option>
-                <option value="MENTOR" style={{ background: "#1a1a1a" }}> Mentor</option>
+                <option value="ORIENTADOR" style={{ background: "#1a1a1a" }}>Orientador</option>
+                <option value="MENTOR" style={{ background: "#1a1a1a" }}>Mentor</option>
                 <option value="CALOURO" style={{ background: "#1a1a1a" }}> Calouro</option>
               </select>
             </div>
@@ -313,7 +345,7 @@ export default function Home() {
                     display: "inline-block",
                     animation: "spin 1s linear infinite"
                   }} />
-                  Ficando ON....
+                  Ficando ON...
                 </>
               ) : (
                 <>
@@ -321,6 +353,7 @@ export default function Home() {
                 </>
               )}
             </button>
+
             <div style={{
               textAlign: "center",
               fontSize: "14px",
