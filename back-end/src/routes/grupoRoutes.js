@@ -14,7 +14,6 @@ const { autenticarToken, autorizarRoles } = require('../middleware/auth');
 
 router.use(autenticarToken);
 
-// GET /api/grupos - Listar todos os grupos
 router.get('/', (req, res) => {
   try {
     const grupos = getAllGrupos();
@@ -24,7 +23,6 @@ router.get('/', (req, res) => {
   }
 });
 
-// GET /api/grupos/:id - Detalhes do grupo
 router.get('/:id', (req, res) => {
   try {
     const grupo = getGrupoById(req.params.id);
@@ -37,7 +35,6 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// POST /api/grupos - Criar novo grupo (Orientador)
 router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
     const { nome, mentorId, descricao, calouroIds = [] } = req.body;
@@ -56,7 +53,6 @@ router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
 
     const grupoId = grupoRes.lastInsertRowid;
 
-    // Vincular calouros selecionados
     if (Array.isArray(calouroIds) && calouroIds.length > 0) {
       for (const cId of calouroIds) {
         addCalouroToGrupo(grupoId, Number(cId));
@@ -66,20 +62,19 @@ router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
     logAtividade({
       usuarioId: req.usuario.id,
       tipo: 'GRUPO_CRIADO',
-      descricao: `Grupo "${nome}" criado com ${calouroIds.length} calouro(s) por ${req.usuario.nome_completo}`
+      descricao: `Grupo "${nome}" criado`
     });
 
     res.status(201).json({
       success: true,
       id: grupoId,
-      message: 'Grupo criado com sucesso!'
+      message: 'Grupo criado com sucesso'
     });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao criar grupo', message: error.message });
   }
 });
 
-// PUT /api/grupos/:id - Atualizar grupo
 router.put('/:id', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
   try {
     const { nome, mentorId, descricao, status } = req.body;
@@ -96,7 +91,6 @@ router.put('/:id', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
   }
 });
 
-// POST /api/grupos/:id/calouros - Adicionar calouro ao grupo
 router.post('/:id/calouros', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
     const { calouroId } = req.body;
@@ -111,7 +105,6 @@ router.post('/:id/calouros', autorizarRoles('ORIENTADOR'), (req, res) => {
   }
 });
 
-// DELETE /api/grupos/:id/calouros/:calouroId - Remover calouro do grupo
 router.delete('/:id/calouros/:calouroId', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
     removeCalouroFromGrupo(req.params.id, req.params.calouroId);
@@ -121,14 +114,13 @@ router.delete('/:id/calouros/:calouroId', autorizarRoles('ORIENTADOR'), (req, re
   }
 });
 
-// DELETE /api/grupos/:id - Remover grupo
 router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
     deleteGrupo(req.params.id);
     logAtividade({
       usuarioId: req.usuario.id,
       tipo: 'GRUPO_REMOVIDO',
-      descricao: `Grupo ID ${req.params.id} excluído por ${req.usuario.nome_completo}`
+      descricao: `Grupo ID ${req.params.id} excluído`
     });
     res.json({ success: true, message: 'Grupo excluído com sucesso' });
   } catch (error) {
@@ -137,4 +129,3 @@ router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
 });
 
 module.exports = router;
-

@@ -12,7 +12,6 @@ const { autenticarToken } = require('../middleware/auth');
 
 router.use(autenticarToken);
 
-// GET /api/dashboard/stats - Estatísticas gerais (Orientador)
 router.get('/stats', (req, res) => {
   try {
     const stats = getDashboardStats();
@@ -22,7 +21,6 @@ router.get('/stats', (req, res) => {
   }
 });
 
-// GET /api/dashboard/atividades - Atividades recentes
 router.get('/atividades', (req, res) => {
   try {
     const limit = Number(req.query.limit) || 10;
@@ -33,7 +31,6 @@ router.get('/atividades', (req, res) => {
   }
 });
 
-// GET /api/dashboard/mentor-resumo - Resumo do dashboard do Mentor logado
 router.get('/mentor-resumo', (req, res) => {
   try {
     const mentor = getMentorByUsuarioId(req.usuario.id);
@@ -62,7 +59,6 @@ router.get('/mentor-resumo', (req, res) => {
   }
 });
 
-// GET /api/dashboard/calouro-resumo - Resumo do dashboard do Calouro logado
 router.get('/calouro-resumo', (req, res) => {
   try {
     const calouro = getCalouroByUsuarioId(req.usuario.id);
@@ -92,4 +88,3 @@ router.get('/calouro-resumo', (req, res) => {
 });
 
 module.exports = router;
-

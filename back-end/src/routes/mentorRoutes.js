@@ -8,6 +8,7 @@ const {
   createUsuario,
   createMentor, 
   updateMentor, 
+  deleteMentor,
   getMentorCalouros,
   getUsuarioByRA,
   getUsuarioByEmail,
@@ -17,7 +18,6 @@ const { autenticarToken, autorizarRoles } = require('../middleware/auth');
 
 router.use(autenticarToken);
 
-// GET /api/mentores - Listar todos os mentores
 router.get('/', (req, res) => {
   try {
     const mentores = getAllMentores();
@@ -27,7 +27,6 @@ router.get('/', (req, res) => {
   }
 });
 
-// GET /api/mentores/meus-calouros - Calouros do mentor autenticado
 router.get('/meus-calouros', autorizarRoles('MENTOR'), (req, res) => {
   try {
     const mentor = getMentorByUsuarioId(req.usuario.id);
@@ -41,7 +40,6 @@ router.get('/meus-calouros', autorizarRoles('MENTOR'), (req, res) => {
   }
 });
 
-// GET /api/mentores/:id - Detalhes do mentor
 router.get('/:id', (req, res) => {
   try {
     const mentor = getMentorById(req.params.id);
@@ -55,7 +53,6 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// POST /api/mentores - Cadastrar novo mentor (Orientador)
 router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
     const { nomeCompleto, nomeUsuario, ra, email, senha = '123456', maxCalouros = 5, especialidades = '' } = req.body;
@@ -96,20 +93,19 @@ router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
     logAtividade({
       usuarioId: req.usuario.id,
       tipo: 'MENTOR_ADICIONADO',
-      descricao: `Novo mentor cadastrado: ${nomeCompleto} por ${req.usuario.nome_completo}`
+      descricao: `Novo mentor cadastrado: ${nomeCompleto}`
     });
 
     res.status(201).json({
       success: true,
       id: mentorRes.lastInsertRowid,
-      message: 'Mentor adicionado com sucesso!'
+      message: 'Mentor adicionado com sucesso'
     });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao cadastrar mentor', message: error.message });
   }
 });
 
-// PUT /api/mentores/:id - Atualizar dados do mentor
 router.put('/:id', (req, res) => {
   try {
     const { disponivel, maxCalouros, especialidades } = req.body;
@@ -125,7 +121,6 @@ router.put('/:id', (req, res) => {
   }
 });
 
-// PATCH /api/mentores/:id/disponibilidade - Alterar disponibilidade
 router.patch('/:id/disponibilidade', (req, res) => {
   try {
     const { disponivel } = req.body;
@@ -138,5 +133,18 @@ router.patch('/:id/disponibilidade', (req, res) => {
   }
 });
 
-module.exports = router;
+router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
+  try {
+    deleteMentor(req.params.id);
+    logAtividade({
+      usuarioId: req.usuario.id,
+      tipo: 'MENTOR_REMOVIDO',
+      descricao: `Mentor ID ${req.params.id} removido`
+    });
+    res.json({ success: true, message: 'Mentor excluído com sucesso' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao excluir mentor', message: error.message });
+  }
+});
 
+module.exports = router;

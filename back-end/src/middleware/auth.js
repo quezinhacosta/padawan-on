@@ -36,7 +36,7 @@ function autorizarRoles(...rolesPermitidas) {
 
     if (!rolesPermitidas.includes(req.usuario.role)) {
       return res.status(403).json({ 
-        error: `Acesso negado. Perfil '${req.usuario.role}' não possui permissão para este recurso.` 
+        error: `Acesso negado para o perfil ${req.usuario.role}` 
       });
     }
 
@@ -49,4 +49,3 @@ module.exports = {
   autorizarRoles,
   JWT_SECRET
 };
-

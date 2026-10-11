@@ -10,7 +10,6 @@ const { autenticarToken, autorizarRoles } = require('../middleware/auth');
 
 router.use(autenticarToken);
 
-// GET /api/recursos - Listar recursos
 router.get('/', (req, res) => {
   try {
     const { tipo } = req.query;
@@ -21,7 +20,6 @@ router.get('/', (req, res) => {
   }
 });
 
-// POST /api/recursos - Criar recurso (Orientador ou Mentor)
 router.post('/', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
   try {
     const { titulo, tipo, descricao, url } = req.body;
@@ -41,20 +39,19 @@ router.post('/', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
     logAtividade({
       usuarioId: req.usuario.id,
       tipo: 'RECURSO_ADICIONADO',
-      descricao: `Novo recurso educacional adicionado: "${titulo}" por ${req.usuario.nome_completo}`
+      descricao: `Novo recurso educacional adicionado: "${titulo}"`
     });
 
     res.status(201).json({
       success: true,
       id: recursoRes.lastInsertRowid,
-      message: 'Recurso adicionado com sucesso!'
+      message: 'Recurso adicionado com sucesso'
     });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao cadastrar recurso', message: error.message });
   }
 });
 
-// DELETE /api/recursos/:id - Remover recurso
 router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
     deleteRecurso(req.params.id);
@@ -65,4 +62,3 @@ router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
 });
 
 module.exports = router;
-

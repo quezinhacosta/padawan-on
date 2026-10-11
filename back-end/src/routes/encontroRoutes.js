@@ -15,18 +15,15 @@ const { autenticarToken, autorizarRoles } = require('../middleware/auth');
 
 router.use(autenticarToken);
 
-// GET /api/encontros - Listar encontros
 router.get('/', (req, res) => {
   try {
     let { grupoId, mentorId, calouroId } = req.query;
 
-    // Se o usuário logado for mentor, pré-filtrar pelos encontros do seu grupo se não especificado
     if (req.usuario.role === 'MENTOR' && !mentorId && !grupoId) {
       const mentor = getMentorByUsuarioId(req.usuario.id);
       if (mentor) mentorId = mentor.id;
     }
 
-    // Se for calouro, pré-filtrar pelo id do calouro
     if (req.usuario.role === 'CALOURO' && !calouroId) {
       const calouro = getCalouroByUsuarioId(req.usuario.id);
       if (calouro) calouroId = calouro.id;
@@ -39,7 +36,6 @@ router.get('/', (req, res) => {
   }
 });
 
-// GET /api/encontros/:id - Detalhes do encontro + lista de frequência
 router.get('/:id', (req, res) => {
   try {
     const encontro = getEncontroById(req.params.id);
@@ -52,7 +48,6 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// POST /api/encontros - Agendar encontro (Orientador ou Mentor)
 router.post('/', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
   try {
     const { grupoId, titulo, descricao, dataHora, duracao = 60, local = 'Online', tema = '' } = req.body;
@@ -76,20 +71,19 @@ router.post('/', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
     logAtividade({
       usuarioId: req.usuario.id,
       tipo: 'ENCONTRO_MARCADO',
-      descricao: `Encontro "${titulo}" agendado para ${new Date(dataHora).toLocaleString('pt-BR')} por ${req.usuario.nome_completo}`
+      descricao: `Encontro "${titulo}" agendado`
     });
 
     res.status(201).json({
       success: true,
       id: encontroRes.lastInsertRowid,
-      message: 'Encontro agendado com sucesso!'
+      message: 'Encontro agendado com sucesso'
     });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao agendar encontro', message: error.message });
   }
 });
 
-// PUT /api/encontros/:id - Atualizar encontro
 router.put('/:id', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
   try {
     const { titulo, descricao, dataHora, duracao, local, tema, status } = req.body;
@@ -109,28 +103,25 @@ router.put('/:id', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
   }
 });
 
-// POST /api/encontros/:id/frequencia - Registrar presença dos calouros
 router.post('/:id/frequencia', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
   try {
-    const { registros } = req.body; // Array de { calouroId, presente, observacao }
+    const { registros } = req.body;
     if (!Array.isArray(registros)) {
-      return res.status(400).json({ error: 'Formato inválido. "registros" deve ser um array.' });
+      return res.status(400).json({ error: 'Formato inválido. Registros deve ser um array.' });
     }
 
     for (const reg of registros) {
       registrarFrequencia(req.params.id, reg.calouroId, reg.presente, reg.observacao || '');
     }
 
-    // Se registrou frequência, marcar encontro como REALIZADO
     updateEncontro(req.params.id, { status: 'REALIZADO' });
 
-    res.json({ success: true, message: 'Frequência registrada com sucesso!' });
+    res.json({ success: true, message: 'Frequência registrada com sucesso' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao registrar frequência', message: error.message });
   }
 });
 
-// DELETE /api/encontros/:id - Cancelar/Excluir encontro
 router.delete('/:id', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
   try {
     deleteEncontro(req.params.id);
@@ -141,4 +132,3 @@ router.delete('/:id', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
 });
 
 module.exports = router;
-

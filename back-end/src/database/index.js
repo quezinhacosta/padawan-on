@@ -9,15 +9,12 @@ try {
   const Database = require('better-sqlite3');
   db = new Database(dbPath);
   db.pragma('foreign_keys = ON');
-  console.log('✅ Conectado ao SQLite via better-sqlite3');
 } catch (err) {
   try {
     const { DatabaseSync } = require('node:sqlite');
     db = new DatabaseSync(dbPath);
     db.exec('PRAGMA foreign_keys = ON;');
-    console.log('✅ Conectado ao SQLite via node:sqlite (embutido)');
   } catch (innerErr) {
-    console.error('❌ Falha crítica ao inicializar o banco de dados:', innerErr.message);
     throw innerErr;
   }
 }
@@ -32,9 +29,11 @@ function initDb() {
 
 initDb();
 
-// ==========================================
-// USUÁRIOS
-// ==========================================
+function getUsuarioByIdentifier(identifier) {
+  const stmt = db.prepare('SELECT * FROM usuarios WHERE ra = ? OR email = ? OR nome_usuario = ?');
+  return stmt.get(identifier, identifier, identifier);
+}
+
 function getUsuarioByRA(ra) {
   const stmt = db.prepare('SELECT * FROM usuarios WHERE ra = ?');
   return stmt.get(ra);
@@ -96,9 +95,6 @@ function deleteUsuario(id) {
   return stmt.run(id);
 }
 
-// ==========================================
-// MENTORES
-// ==========================================
 function getAllMentores() {
   const stmt = db.prepare(`
     SELECT 
@@ -178,6 +174,15 @@ function updateMentor(id, { disponivel, maxCalouros, especialidades }) {
   return stmt.run(disponivel, maxCalouros, especialidades, id);
 }
 
+function deleteMentor(id) {
+  const mentor = db.prepare('SELECT usuario_id FROM mentores WHERE id = ?').get(id);
+  db.prepare('UPDATE grupos SET mentor_id = NULL WHERE mentor_id = ?').run(id);
+  db.prepare('DELETE FROM mentores WHERE id = ?').run(id);
+  if (mentor && mentor.usuario_id) {
+    db.prepare('DELETE FROM usuarios WHERE id = ?').run(mentor.usuario_id);
+  }
+}
+
 function getMentorCalouros(mentorId) {
   const stmt = db.prepare(`
     SELECT 
@@ -199,9 +204,6 @@ function getMentorCalouros(mentorId) {
   return stmt.all(mentorId);
 }
 
-// ==========================================
-// CALOUROS
-// ==========================================
 function getAllCalouros() {
   const stmt = db.prepare(`
     SELECT 
@@ -299,9 +301,16 @@ function updateCalouro(id, { curso, periodo }) {
   return stmt.run(curso, periodo, id);
 }
 
-// ==========================================
-// GRUPOS
-// ==========================================
+function deleteCalouro(id) {
+  const calouro = db.prepare('SELECT usuario_id FROM calouros WHERE id = ?').get(id);
+  db.prepare('DELETE FROM calouros_grupos WHERE calouro_id = ?').run(id);
+  db.prepare('DELETE FROM frequencia WHERE calouro_id = ?').run(id);
+  db.prepare('DELETE FROM calouros WHERE id = ?').run(id);
+  if (calouro && calouro.usuario_id) {
+    db.prepare('DELETE FROM usuarios WHERE id = ?').run(calouro.usuario_id);
+  }
+}
+
 function getAllGrupos() {
   const stmt = db.prepare(`
     SELECT 
@@ -377,19 +386,43 @@ function getGrupoById(id) {
   return grupo;
 }
 
+function getOrientadorByUsuarioId(usuarioId) {
+  const stmt = db.prepare('SELECT * FROM orientadores WHERE usuario_id = ?');
+  return stmt.get(usuarioId);
+}
+
 function createGrupo({ nome, mentorId = null, orientadorId = null, descricao = '', status = 'ATIVO' }) {
+  let finalOrientadorId = null;
+  if (orientadorId) {
+    const direct = db.prepare('SELECT id FROM orientadores WHERE id = ?').get(orientadorId);
+    if (direct) {
+      finalOrientadorId = direct.id;
+    } else {
+      const byUser = db.prepare('SELECT id FROM orientadores WHERE usuario_id = ?').get(orientadorId);
+      if (byUser) {
+        finalOrientadorId = byUser.id;
+      } else {
+        const user = db.prepare('SELECT id FROM usuarios WHERE id = ? AND role = "ORIENTADOR"').get(orientadorId);
+        if (user) {
+          const created = db.prepare('INSERT INTO orientadores (usuario_id, departamento, cargo) VALUES (?, ?, ?)').run(user.id, 'Ciência da Computação', 'Orientador');
+          finalOrientadorId = created.lastInsertRowid;
+        }
+      }
+    }
+  }
+
   const stmt = db.prepare(`
     INSERT INTO grupos (nome, mentor_id, orientador_id, descricao, status)
     VALUES (?, ?, ?, ?, ?)
   `);
-  return stmt.run(nome, mentorId, orientadorId, descricao, status);
+  return stmt.run(nome, mentorId, finalOrientadorId, descricao, status);
 }
 
 function updateGrupo(id, { nome, mentorId, descricao, status }) {
   const stmt = db.prepare(`
     UPDATE grupos
     SET nome = COALESCE(?, nome),
-        mentor_id = COALESCE(?, mentor_id),
+        mentor_id = COALESCE(?, mentorId),
         descricao = COALESCE(?, descricao),
         status = COALESCE(?, status),
         updated_at = CURRENT_TIMESTAMP
@@ -409,21 +442,19 @@ function addCalouroToGrupo(grupoId, calouroId) {
 
 function removeCalouroFromGrupo(grupoId, calouroId) {
   const stmt = db.prepare(`
-    UPDATE calouros_grupos
-    SET status = 'INATIVO', data_saida = CURRENT_TIMESTAMP
+    DELETE FROM calouros_grupos
     WHERE grupo_id = ? AND calouro_id = ?
   `);
   return stmt.run(grupoId, calouroId);
 }
 
 function deleteGrupo(id) {
+  db.prepare('DELETE FROM calouros_grupos WHERE grupo_id = ?').run(id);
+  db.prepare('DELETE FROM encontros WHERE grupo_id = ?').run(id);
   const stmt = db.prepare('DELETE FROM grupos WHERE id = ?');
   return stmt.run(id);
 }
 
-// ==========================================
-// ENCONTROS E FREQUÊNCIA
-// ==========================================
 function getAllEncontros({ grupoId = null, mentorId = null, calouroId = null } = {}) {
   let query = `
     SELECT 
@@ -516,6 +547,7 @@ function updateEncontro(id, { titulo, descricao, dataHora, duracao, local, tema,
 }
 
 function deleteEncontro(id) {
+  db.prepare('DELETE FROM frequencia WHERE encontro_id = ?').run(id);
   const stmt = db.prepare('DELETE FROM encontros WHERE id = ?');
   return stmt.run(id);
 }
@@ -529,9 +561,6 @@ function registrarFrequencia(encontroId, calouroId, presente = 1, observacao = '
   return stmt.run(encontroId, calouroId, presente ? 1 : 0, observacao, presente ? 1 : 0, observacao);
 }
 
-// ==========================================
-// RECURSOS
-// ==========================================
 function getAllRecursos(tipo = null) {
   if (tipo) {
     const stmt = db.prepare(`
@@ -565,9 +594,6 @@ function deleteRecurso(id) {
   return stmt.run(id);
 }
 
-// ==========================================
-// ATIVIDADES
-// ==========================================
 function logAtividade({ usuarioId = null, tipo, descricao, dados = null, ip = null }) {
   try {
     const stmt = db.prepare(`
@@ -575,9 +601,7 @@ function logAtividade({ usuarioId = null, tipo, descricao, dados = null, ip = nu
       VALUES (?, ?, ?, ?, ?)
     `);
     return stmt.run(usuarioId, tipo, descricao, dados, ip);
-  } catch (err) {
-    console.error('Erro ao registrar atividade:', err.message);
-  }
+  } catch (err) {}
 }
 
 function getAtividadesRecentes(limit = 10) {
@@ -591,9 +615,6 @@ function getAtividadesRecentes(limit = 10) {
   return stmt.all(limit);
 }
 
-// ==========================================
-// ESTATÍSTICAS DO DASHBOARD
-// ==========================================
 function getDashboardStats() {
   const totalMentores = db.prepare('SELECT COUNT(*) as count FROM mentores').get().count;
   const mentoresDisponiveis = db.prepare('SELECT COUNT(*) as count FROM mentores WHERE disponivel = 1').get().count;
@@ -613,7 +634,7 @@ function getDashboardStats() {
 
   const totalEncontrosRealizados = db.prepare("SELECT COUNT(*) as count FROM encontros WHERE status = 'REALIZADO'").get().count;
   const totalEncontros = db.prepare("SELECT COUNT(*) as count FROM encontros").get().count;
-  const taxaSucesso = totalEncontros > 0 ? Math.round((totalEncontrosRealizados / totalEncontros) * 100) : 95;
+  const taxaSucesso = totalEncontros > 0 ? Math.round((totalEncontrosRealizados / totalEncontros) * 100) : 100;
 
   return {
     totalMentores,
@@ -630,7 +651,7 @@ function getDashboardStats() {
 module.exports = {
   db,
   initDb,
-  // Usuários
+  getUsuarioByIdentifier,
   getUsuarioByRA,
   getUsuarioByEmail,
   getUsuarioById,
@@ -638,20 +659,19 @@ module.exports = {
   createUsuario,
   updateUsuario,
   deleteUsuario,
-  // Mentores
   getAllMentores,
   getMentorById,
   getMentorByUsuarioId,
   createMentor,
   updateMentor,
+  deleteMentor,
   getMentorCalouros,
-  // Calouros
   getAllCalouros,
   getCalouroById,
   getCalouroByUsuarioId,
   createCalouro,
   updateCalouro,
-  // Grupos
+  deleteCalouro,
   getAllGrupos,
   getGrupoById,
   createGrupo,
@@ -659,20 +679,17 @@ module.exports = {
   addCalouroToGrupo,
   removeCalouroFromGrupo,
   deleteGrupo,
-  // Encontros
   getAllEncontros,
   getEncontroById,
   createEncontro,
   updateEncontro,
   deleteEncontro,
   registrarFrequencia,
-  // Recursos
   getAllRecursos,
   createRecurso,
   deleteRecurso,
-  // Atividades
   logAtividade,
   getAtividadesRecentes,
-  // Stats
-  getDashboardStats
+  getDashboardStats,
+  getOrientadorByUsuarioId
 };

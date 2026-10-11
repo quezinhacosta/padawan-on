@@ -8,6 +8,7 @@ const {
   createUsuario,
   createCalouro, 
   updateCalouro,
+  deleteCalouro,
   getUsuarioByRA,
   getUsuarioByEmail,
   logAtividade 
@@ -16,7 +17,6 @@ const { autenticarToken, autorizarRoles } = require('../middleware/auth');
 
 router.use(autenticarToken);
 
-// GET /api/calouros - Listar todos os calouros
 router.get('/', (req, res) => {
   try {
     const calouros = getAllCalouros();
@@ -26,7 +26,6 @@ router.get('/', (req, res) => {
   }
 });
 
-// GET /api/calouros/meu-perfil - Calouro logado
 router.get('/meu-perfil', autorizarRoles('CALOURO'), (req, res) => {
   try {
     const calouro = getCalouroByUsuarioId(req.usuario.id);
@@ -39,7 +38,6 @@ router.get('/meu-perfil', autorizarRoles('CALOURO'), (req, res) => {
   }
 });
 
-// GET /api/calouros/:id - Detalhes do calouro
 router.get('/:id', (req, res) => {
   try {
     const calouro = getCalouroById(req.params.id);
@@ -52,7 +50,6 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// POST /api/calouros - Cadastrar novo calouro (Orientador)
 router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
     const { nomeCompleto, nomeUsuario, ra, email, senha = '123456', curso = 'Ciência da Computação', periodo = '1º Período' } = req.body;
@@ -92,20 +89,19 @@ router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
     logAtividade({
       usuarioId: req.usuario.id,
       tipo: 'CALOURO_ADICIONADO',
-      descricao: `Novo calouro adicionado: ${nomeCompleto} por ${req.usuario.nome_completo}`
+      descricao: `Novo calouro adicionado: ${nomeCompleto}`
     });
 
     res.status(201).json({
       success: true,
       id: calouroRes.lastInsertRowid,
-      message: 'Calouro cadastrado com sucesso!'
+      message: 'Calouro cadastrado com sucesso'
     });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao cadastrar calouro', message: error.message });
   }
 });
 
-// PUT /api/calouros/:id - Atualizar dados do calouro
 router.put('/:id', (req, res) => {
   try {
     const { curso, periodo } = req.body;
@@ -116,5 +112,18 @@ router.put('/:id', (req, res) => {
   }
 });
 
-module.exports = router;
+router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
+  try {
+    deleteCalouro(req.params.id);
+    logAtividade({
+      usuarioId: req.usuario.id,
+      tipo: 'CALOURO_REMOVIDO',
+      descricao: `Calouro ID ${req.params.id} removido`
+    });
+    res.json({ success: true, message: 'Calouro excluído com sucesso' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao excluir calouro', message: error.message });
+  }
+});
 
+module.exports = router;

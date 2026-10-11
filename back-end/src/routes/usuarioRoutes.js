@@ -6,15 +6,12 @@ const {
   getUsuarioById, 
   updateUsuario, 
   deleteUsuario,
-  createUsuario,
   logAtividade 
 } = require('../database');
 const { autenticarToken, autorizarRoles } = require('../middleware/auth');
 
-// Todas as rotas de usuários exigem autenticação
 router.use(autenticarToken);
 
-// GET /api/usuarios - Listar todos os usuários (orientador)
 router.get('/', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
     const { role } = req.query;
@@ -25,7 +22,6 @@ router.get('/', autorizarRoles('ORIENTADOR'), (req, res) => {
   }
 });
 
-// GET /api/usuarios/:id - Buscar usuário específico
 router.get('/:id', (req, res) => {
   try {
     const usuario = getUsuarioById(req.params.id);
@@ -38,13 +34,12 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// PUT /api/usuarios/:id - Atualizar usuário
 router.put('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
     const { nomeCompleto, email, ativo, novaSenha } = req.body;
     let senhaHash = undefined;
 
-    if (novaSenha && novaSenha.length >= 6) {
+    if (novaSenha && novaSenha.length >= 4) {
       const salt = bcrypt.genSaltSync(10);
       senhaHash = bcrypt.hashSync(novaSenha, salt);
     }
@@ -59,7 +54,7 @@ router.put('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
     logAtividade({
       usuarioId: req.usuario.id,
       tipo: 'USUARIO_ATUALIZADO',
-      descricao: `Usuário ID ${req.params.id} atualizado por ${req.usuario.nome_completo}`
+      descricao: `Usuário ID ${req.params.id} atualizado`
     });
 
     res.json({ success: true, message: 'Usuário atualizado com sucesso' });
@@ -68,14 +63,13 @@ router.put('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
   }
 });
 
-// DELETE /api/usuarios/:id - Remover usuário
 router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
     deleteUsuario(req.params.id);
     logAtividade({
       usuarioId: req.usuario.id,
       tipo: 'USUARIO_REMOVIDO',
-      descricao: `Usuário ID ${req.params.id} removido por ${req.usuario.nome_completo}`
+      descricao: `Usuário ID ${req.params.id} removido`
     });
     res.json({ success: true, message: 'Usuário excluído com sucesso' });
   } catch (error) {
@@ -84,4 +78,3 @@ router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
 });
 
 module.exports = router;
-
