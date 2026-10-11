@@ -1,0 +1,71 @@
+services:
+  backend:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: padawan_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - JWT_SECRET=padawan_secret_key_2026_unicap
+      - NODE_ENV=production
+    volumes:
+      - ./back-end/database.sqlite:/app/database.sqlite
+    networks:
+      - padawan_network
+
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+    container_name: padawan_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=http://backend:5000
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - padawan_network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: padawan_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: padawan
+      POSTGRES_PASSWORD: padawan_password
+      POSTGRES_DB: padawan_on
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - padawan_network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: padawan_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@unicap.br
+      PGADMIN_DEFAULT_PASSWORD: admin_password
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - padawan_network
+
+networks:
+  padawan_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+

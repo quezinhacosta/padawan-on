@@ -1,18 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 
-// Usando Inter que é mais leve e combina com nosso design
-const inter = Inter({ 
-  subsets: ["latin"],
-  display: 'swap',
-  variable: '--font-inter',
-});
-
 export const metadata: Metadata = {
-  title: "Padawan ON",
-  description: "Plataforma de gestão do programa de extensão Padawan - UNICAP",
-  keywords: "Padawan, UNICAP, extensão, gestão, orientadores, mentores, calouros",
+  title: "Padawan ON | Gestão de Apadrinhamento UNICAP",
+  description: "Plataforma de gestão do programa de extensão Padawan - Ciência da Computação UNICAP",
+  keywords: "Padawan, UNICAP, extensão, mentoria, apadrinhamento, calouros, ciência da computação",
   authors: [{ name: "Padawan ON Team" }],
 };
 
@@ -22,11 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html 
-      lang="pt-BR"
-      className={`${inter.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-black text-white">
+    <html lang="pt-BR" className="h-full antialiased">
+      <body className="min-h-full flex flex-col bg-black text-white font-sans">
         {children}
       </body>
     </html>

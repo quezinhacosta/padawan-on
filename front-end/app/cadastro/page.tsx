@@ -10,6 +10,7 @@ export default function Cadastro() {
   const [formData, setFormData] = useState({
     nomeUsuario: "",
     nomeCompleto: "",
+    email: "",
     ra: "",
     senha: "",
     confirmarSenha: "",
@@ -31,10 +32,41 @@ export default function Cadastro() {
     }
 
     setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nomeUsuario: formData.nomeUsuario,
+          nomeCompleto: formData.nomeCompleto,
+          email: formData.email,
+          ra: formData.ra,
+          senha: formData.senha,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setErro(data.error || 'Erro ao realizar cadastro')
+        setIsLoading(false)
+        return
+      }
+
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+      }
+      localStorage.setItem('user', JSON.stringify(data.usuario))
       router.push("/dashboard/calouro")
-    }, 1500)
+    } catch (error) {
+      console.error('Erro no cadastro:', error)
+      setErro('Erro ao conectar com o servidor. Verifique se o backend está ativo.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -158,6 +190,36 @@ export default function Cadastro() {
                 value={formData.nomeCompleto}
                 onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
                 required
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "rgba(255,255,255,0.6)",
+                marginBottom: "6px"
+              }}>
+                E-mail Institucional (Opcional)
+              </label>
+              <input
+                type="email"
+                placeholder="exemplo@unicap.br"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "white",
+                  fontSize: "14px",
+                  outline: "none",
+                  transition: "all 0.3s ease"
+                }}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
 

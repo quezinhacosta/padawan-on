@@ -208,7 +208,7 @@ export default function Home() {
                   Selecione seu perfil
                 </option>
                 <option value="ORIENTADOR">
-                  Orientador
+                  Orientador / Administrador
                 </option>
                 <option value="MENTOR">
                   Mentor
@@ -217,6 +217,68 @@ export default function Home() {
                   Calouro
                 </option>
               </select>
+            </div>
+
+            {/* Acesso rápido para testes */}
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              padding: "12px",
+              background: "rgba(255,255,255,0.02)",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.05)"
+            }}>
+              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textAlign: "center" }}>
+                ⚡ Preenchimento rápido para demonstração:
+              </span>
+              <div style={{ display: "flex", gap: "6px", justifyContent: "center" }}>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ra: "1001", senha: "123456", role: "ORIENTADOR" })}
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: "6px",
+                    background: "rgba(211,252,114,0.1)",
+                    border: "1px solid rgba(211,252,114,0.2)",
+                    color: "#d3fc72",
+                    fontSize: "11px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Orientador
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ra: "2001", senha: "123456", role: "MENTOR" })}
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: "6px",
+                    background: "rgba(85,49,204,0.15)",
+                    border: "1px solid rgba(85,49,204,0.3)",
+                    color: "#a78bfa",
+                    fontSize: "11px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Mentor
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ra: "3001", senha: "123456", role: "CALOURO" })}
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: "6px",
+                    background: "rgba(255,107,107,0.15)",
+                    border: "1px solid rgba(255,107,107,0.3)",
+                    color: "#ff8787",
+                    fontSize: "11px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Calouro
+                </button>
+              </div>
             </div>
 
             <button
@@ -242,7 +304,7 @@ export default function Home() {
                 </Link>
               </p>
               <p className={styles.loginCredits}>
-                SGA - Sistema de Gestão de Apadrinhamento
+                SGA - Sistema de Gestão de Apadrinhamento 
               </p>
             </div>
           </form>

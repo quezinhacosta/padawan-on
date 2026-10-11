@@ -2,92 +2,187 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { getUsuarioByRA, createUsuario } = require('../database');
+const { 
+  getUsuarioByRA, 
+  getUsuarioByEmail, 
+  createUsuario, 
+  createCalouro, 
+  getMentorByUsuarioId,
+  getCalouroByUsuarioId,
+  logAtividade 
+} = require('../database');
+const { autenticarToken, JWT_SECRET } = require('../middleware/auth');
 
-// Login
+// POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
     const { ra, senha, role } = req.body;
 
-    // Buscar usuário
+    if (!ra || !senha) {
+      return res.status(400).json({ error: 'RA e senha são obrigatórios' });
+    }
+
     const usuario = getUsuarioByRA(ra);
-    
     if (!usuario) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
-    // Verificar senha (em produção, use bcrypt)
-    const senhaValida = senha === usuario.senha_hash;
+    if (!usuario.ativo) {
+      return res.status(403).json({ error: 'Usuário desativado pelo orientador' });
+    }
+
+    // Validação da senha com bcrypt (suportando fallback para texto puro se legado)
+    let senhaValida = false;
+    if (usuario.senha_hash.startsWith('$2a$') || usuario.senha_hash.startsWith('$2b$')) {
+      senhaValida = bcrypt.compareSync(senha, usuario.senha_hash);
+    } else {
+      senhaValida = senha === usuario.senha_hash;
+    }
+
     if (!senhaValida) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
-    // Verificar role
-    if (usuario.role !== role) {
-      return res.status(401).json({ error: 'Perfil inválido para este acesso' });
+    // Se o usuário selecionou um perfil específico na tela de login
+    if (role && usuario.role !== role) {
+      return res.status(403).json({ 
+        error: `Perfil selecionado (${role}) difere do perfil cadastrado (${usuario.role})` 
+      });
     }
 
-    // Gerar token JWT
+    // Gerar token JWT com 7 dias de validade
     const token = jwt.sign(
-      { id: usuario.id, role: usuario.role },
-      process.env.JWT_SECRET || 'secret_key',
+      { id: usuario.id, role: usuario.role, ra: usuario.ra },
+      JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    // Remover senha
-    const { senha_hash, ...usuarioData } = usuario;
+    // Dados complementares de acordo com o papel
+    let detalhesPerfil = null;
+    if (usuario.role === 'MENTOR') {
+      detalhesPerfil = getMentorByUsuarioId(usuario.id);
+    } else if (usuario.role === 'CALOURO') {
+      detalhesPerfil = getCalouroByUsuarioId(usuario.id);
+    }
+
+    const { senha_hash, ...usuarioSemSenha } = usuario;
+
+    logAtividade({
+      usuarioId: usuario.id,
+      tipo: 'LOGIN',
+      descricao: `${usuario.nome_completo} realizou login como ${usuario.role}.`,
+      ip: req.ip
+    });
 
     res.json({
       success: true,
       token,
-      usuario: usuarioData
+      usuario: {
+        ...usuarioSemSenha,
+        nome: usuario.nome_completo,
+        detalhes: detalhesPerfil
+      }
     });
   } catch (error) {
     console.error('Erro no login:', error);
-    res.status(500).json({ error: 'Erro ao fazer login' });
+    res.status(500).json({ error: 'Erro ao autenticar usuário', detalhe: error.message });
   }
 });
 
-// Registro (apenas calouros)
+// POST /api/auth/register (Cadastro de Calouro)
 router.post('/register', async (req, res) => {
   try {
-    const { nomeUsuario, nomeCompleto, ra, email, senha } = req.body;
+    const { nomeUsuario, nomeCompleto, ra, email, senha, curso = 'Ciência da Computação', periodo = '1º Período' } = req.body;
 
-    // Verificar se já existe
-    const usuarioExistente = getUsuarioByRA(ra);
-    if (usuarioExistente) {
-      return res.status(400).json({ error: 'RA já cadastrado' });
+    if (!nomeUsuario || !nomeCompleto || !ra || !senha) {
+      return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos' });
     }
 
-    // Hash da senha (em produção)
-    const senhaHash = senha; // Temporário
+    if (senha.length < 6) {
+      return res.status(400).json({ error: 'A senha deve ter no mínimo 6 caracteres' });
+    }
 
-    // Criar usuário
-    const result = createUsuario({
-      nomeUsuario,
-      nomeCompleto,
-      email,
-      ra,
+    const raExistente = getUsuarioByRA(ra);
+    if (raExistente) {
+      return res.status(400).json({ error: 'Já existe uma conta cadastrada com este RA' });
+    }
+
+    const emailCalculado = email && email.trim() !== '' ? email.trim() : `${nomeUsuario.toLowerCase().replace(/\s+/g, '')}@unicap.br`;
+    const emailExistente = getUsuarioByEmail(emailCalculado);
+    if (emailExistente) {
+      return res.status(400).json({ error: 'Já existe uma conta cadastrada com este e-mail' });
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const senhaHash = bcrypt.hashSync(senha, salt);
+
+    const userRes = createUsuario({
+      nomeUsuario: nomeUsuario.trim(),
+      nomeCompleto: nomeCompleto.trim(),
+      email: emailCalculado,
+      ra: ra.trim(),
       senhaHash,
-      role: 'CALOURO'
+      role: 'CALOURO',
+      ativo: 1
     });
 
-    // Criar registro de calouro
-    const db = require('../database').db;
-    const stmt = db.prepare(`
-      INSERT INTO calouros (usuario_id, curso, periodo)
-      VALUES (?, ?, ?)
-    `);
-    stmt.run(result.lastInsertRowid, 'Ciência da Computação', '1º Período');
+    const novoUsuarioId = userRes.lastInsertRowid;
+
+    createCalouro({
+      usuarioId: novoUsuarioId,
+      curso,
+      periodo
+    });
+
+    logAtividade({
+      usuarioId: novoUsuarioId,
+      tipo: 'CALOURO_ADICIONADO',
+      descricao: `Novo calouro cadastrado: ${nomeCompleto} (${ra})`
+    });
+
+    const token = jwt.sign(
+      { id: novoUsuarioId, role: 'CALOURO', ra },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     res.status(201).json({
       success: true,
-      message: 'Usuário cadastrado com sucesso'
+      message: 'Cadastro realizado com sucesso!',
+      token,
+      usuario: {
+        id: novoUsuarioId,
+        nome: nomeCompleto,
+        nome_completo: nomeCompleto,
+        nome_usuario: nomeUsuario,
+        email: emailCalculado,
+        ra,
+        role: 'CALOURO',
+        ativo: 1
+      }
     });
   } catch (error) {
     console.error('Erro no cadastro:', error);
-    res.status(500).json({ error: 'Erro ao cadastrar' });
+    res.status(500).json({ error: 'Erro ao cadastrar usuário', detalhe: error.message });
   }
+});
+
+// GET /api/auth/me (Perfil do Usuário Autenticado)
+router.get('/me', autenticarToken, (req, res) => {
+  let detalhes = null;
+  if (req.usuario.role === 'MENTOR') {
+    detalhes = getMentorByUsuarioId(req.usuario.id);
+  } else if (req.usuario.role === 'CALOURO') {
+    detalhes = getCalouroByUsuarioId(req.usuario.id);
+  }
+
+  res.json({
+    usuario: {
+      ...req.usuario,
+      nome: req.usuario.nome_completo,
+      detalhes
+    }
+  });
 });
 
 module.exports = router;

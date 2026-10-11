@@ -1,163 +1,326 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
-interface Mentor {
-  id: string
-  nome: string
-  ra: string
-  email: string
-  cursos: string[]
+interface MentorData {
+  mentor: {
+    id: number
+    nome: string
+    email: string
+    ra: string
+    disponivel: boolean | number
+    max_calouros: number
+    especialidades: string
+  }
+  totalCalouros: number
+  maxCalouros: number
   disponivel: boolean
-  calourosAtendidos: number
+  encontrosAgendadosCount: number
+  encontrosRealizadosCount: number
+  proximosEncontros: any[]
+  calouros: any[]
 }
 
-export default function MentoresPage() {
-  const [mentores, setMentores] = useState<Mentor[]>([
-    {
-      id: "1",
-      nome: "João Silva",
-      ra: "2021001",
-      email: "joao@unicap.br",
-      cursos: ["Ciência da Computação"],
-      disponivel: true,
-      calourosAtendidos: 3
-    },
-    {
-      id: "2",
-      nome: "Maria Santos",
-      ra: "2021002",
-      email: "maria@unicap.br",
-      cursos: ["Ciência da Computação"],
-      disponivel: false,
-      calourosAtendidos: 5
-    },
-  ])
+export default function MentorDashboard() {
+  const router = useRouter()
+  const [data, setData] = useState<MentorData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    carregarResumo()
+  }, [])
+
+  const getHeaders = () => {
+    const token = localStorage.getItem("token")
+    const headers: Record<string, string> = { "Content-Type": "application/json" }
+    if (token) headers["Authorization"] = `Bearer ${token}`
+    return headers
+  }
+
+  const carregarResumo = async () => {
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/dashboard/mentor-resumo', { headers: getHeaders() })
+      if (res.ok) {
+        const json = await res.json()
+        setData(json)
+      }
+    } catch (err) {
+      console.error("Erro ao carregar resumo do mentor:", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleToggleDisponibilidade = async () => {
+    if (!data?.mentor?.id) return
+    const novoStatus = !data.disponivel
+
+    try {
+      const res = await fetch(`/api/mentores/${data.mentor.id}/disponibilidade`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify({ disponivel: novoStatus })
+      })
+      if (res.ok) {
+        setData({
+          ...data,
+          disponivel: novoStatus,
+          mentor: { ...data.mentor, disponivel: novoStatus }
+        })
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar disponibilidade:", err)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div style={{ textAlign: "center", padding: "60px", color: "rgba(255,255,255,0.4)" }}>
+        Carregando painel do mentor...
+      </div>
+    )
+  }
 
   return (
     <div>
+      {/* Header */}
       <div style={{
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: "32px"
+        marginBottom: "32px",
+        flexWrap: "wrap",
+        gap: "16px"
       }}>
         <div>
           <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-            🧑‍🎓 Gerenciar Mentores
+            🧑‍🎓 Olá, {data?.mentor?.nome || "Mentor"}!
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.4)" }}>
-            Gerencie todos os mentores do programa
+          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
+            Painel de Acompanhamento de Apadrinhamento • {data?.mentor?.especialidades || "Ciência da Computação"}
           </p>
         </div>
-        <button style={{
-          padding: "10px 24px",
-          borderRadius: "12px",
-          background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
-          color: "black",
-          fontWeight: "600",
-          border: "none",
-          cursor: "pointer",
-          fontSize: "14px"
-        }}>
-          + Adicionar Mentor
-        </button>
+
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <button
+            onClick={handleToggleDisponibilidade}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "10px",
+              background: data?.disponivel ? "rgba(211,252,114,0.15)" : "rgba(255,107,107,0.15)",
+              border: `1px solid ${data?.disponivel ? "rgba(211,252,114,0.3)" : "rgba(255,107,107,0.3)"}`,
+              color: data?.disponivel ? "#d3fc72" : "#ff6b6b",
+              fontWeight: "600",
+              cursor: "pointer",
+              fontSize: "13px"
+            }}
+          >
+            {data?.disponivel ? "🟢 Disponível para Novos Calouros" : "🔴 Ocupado / Indisponível"}
+          </button>
+          <button
+            onClick={() => router.push("/dashboard/encontros")}
+            style={{
+              padding: "10px 20px",
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
+              border: "none",
+              color: "black",
+              fontWeight: "600",
+              cursor: "pointer",
+              fontSize: "13px"
+            }}
+          >
+            + Agendar Encontro
+          </button>
+        </div>
       </div>
 
-      {/* Filtros */}
+      {/* Cards de Métricas */}
       <div style={{
-        display: "flex",
-        gap: "12px",
-        marginBottom: "24px",
-        flexWrap: "wrap"
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gap: "16px",
+        marginBottom: "28px"
       }}>
-        <input
-          type="text"
-          placeholder="Buscar mentor..."
-          style={{
-            padding: "8px 16px",
-            borderRadius: "8px",
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            color: "white",
-            fontSize: "14px",
-            flex: 1,
-            minWidth: "200px"
-          }}
-        />
-        <select style={{
-          padding: "8px 16px",
-          borderRadius: "8px",
-          background: "rgba(255,255,255,0.05)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          color: "white",
-          fontSize: "14px"
+        <div style={{
+          background: "rgba(255,255,255,0.03)",
+          borderRadius: "16px",
+          padding: "20px",
+          border: "1px solid rgba(255,255,255,0.05)"
         }}>
-          <option value="">Todos os status</option>
-          <option value="disponivel">Disponível</option>
-          <option value="indisponivel">Indisponível</option>
-        </select>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+            <span style={{ fontSize: "22px" }}>👶</span>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>Meus Calouros</p>
+          </div>
+          <p style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
+            {data?.totalCalouros || 0} / {data?.maxCalouros || 5}
+          </p>
+          <p style={{ color: "#d3fc72", fontSize: "12px", marginTop: "4px" }}>
+            Vagas preenchidas
+          </p>
+        </div>
+
+        <div style={{
+          background: "rgba(255,255,255,0.03)",
+          borderRadius: "16px",
+          padding: "20px",
+          border: "1px solid rgba(255,255,255,0.05)"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+            <span style={{ fontSize: "22px" }}>⏳</span>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>Encontros Agendados</p>
+          </div>
+          <p style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
+            {data?.encontrosAgendadosCount || 0}
+          </p>
+          <p style={{ color: "#a78bfa", fontSize: "12px", marginTop: "4px" }}>
+            Próximas sessões de tutoria
+          </p>
+        </div>
+
+        <div style={{
+          background: "rgba(255,255,255,0.03)",
+          borderRadius: "16px",
+          padding: "20px",
+          border: "1px solid rgba(255,255,255,0.05)"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+            <span style={{ fontSize: "22px" }}>✅</span>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>Encontros Realizados</p>
+          </div>
+          <p style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
+            {data?.encontrosRealizadosCount || 0}
+          </p>
+          <p style={{ color: "#4ecdc4", fontSize: "12px", marginTop: "4px" }}>
+            Sessões concluídas
+          </p>
+        </div>
       </div>
 
-      {/* Lista de Mentores */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {mentores.map((mentor) => (
-          <div key={mentor.id} style={{
-            background: "rgba(255,255,255,0.03)",
-            borderRadius: "12px",
-            padding: "20px",
-            border: "1px solid rgba(255,255,255,0.05)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
-          }}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px" }}>
-                <span style={{ fontSize: "20px" }}>🧑‍🎓</span>
-                <h3 style={{ color: "white", fontWeight: "600" }}>{mentor.nome}</h3>
-                <span style={{
-                  padding: "2px 8px",
-                  borderRadius: "12px",
-                  fontSize: "11px",
-                  fontWeight: "500",
-                  background: mentor.disponivel ? "rgba(211,252,114,0.2)" : "rgba(255,107,107,0.2)",
-                  color: mentor.disponivel ? "#d3fc72" : "#ff6b6b"
-                }}>
-                  {mentor.disponivel ? "Disponível" : "Indisponível"}
-                </span>
-              </div>
-              <div style={{ display: "flex", gap: "16px", color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>
-                <span>📧 {mentor.email}</span>
-                <span>🆔 {mentor.ra}</span>
-                <span>👶 {mentor.calourosAtendidos} calouros</span>
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button style={{
-                padding: "6px 12px",
-                borderRadius: "8px",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "white",
+      {/* Conteúdo em duas colunas: Calouros e Próximos Encontros */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "20px"
+      }}>
+        {/* Calouros Atribuídos */}
+        <div style={{
+          background: "rgba(255,255,255,0.03)",
+          borderRadius: "16px",
+          padding: "24px",
+          border: "1px solid rgba(255,255,255,0.05)"
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600" }}>
+              👶 Calouros Atribuídos
+            </h3>
+            <button
+              onClick={() => router.push("/dashboard/meus-calouros")}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#d3fc72",
                 cursor: "pointer",
                 fontSize: "12px"
-              }}>
-                Ver Perfil
-              </button>
-              <button style={{
-                padding: "6px 12px",
-                borderRadius: "8px",
-                background: "rgba(85,49,204,0.2)",
-                border: "1px solid rgba(85,49,204,0.3)",
-                color: "#5531cc",
-                cursor: "pointer",
-                fontSize: "12px"
-              }}>
-                Editar
-              </button>
-            </div>
+              }}
+            >
+              Ver detalhes →
+            </button>
           </div>
-        ))}
+
+          {!data?.calouros || data.calouros.length === 0 ? (
+            <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "13px" }}>
+              Nenhum calouro vinculado ao seu grupo no momento.
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {data.calouros.map((c) => (
+                <div key={c.id} style={{
+                  padding: "14px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.04)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}>
+                  <div>
+                    <p style={{ color: "white", fontWeight: "600", fontSize: "14px" }}>{c.nome}</p>
+                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>
+                      📧 {c.email} • RA: {c.ra}
+                    </p>
+                    <span style={{ fontSize: "11px", color: "#a78bfa" }}>
+                      👥 {c.grupo_nome}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Próximos Encontros */}
+        <div style={{
+          background: "rgba(255,255,255,0.03)",
+          borderRadius: "16px",
+          padding: "24px",
+          border: "1px solid rgba(255,255,255,0.05)"
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600" }}>
+              📅 Próximos Encontros
+            </h3>
+            <button
+              onClick={() => router.push("/dashboard/encontros")}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#d3fc72",
+                cursor: "pointer",
+                fontSize: "12px"
+              }}
+            >
+              Gerenciar agenda →
+            </button>
+          </div>
+
+          {!data?.proximosEncontros || data.proximosEncontros.length === 0 ? (
+            <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "13px" }}>
+              Nenhum encontro agendado. Clique em "+ Agendar Encontro" para criar uma nova mentoria.
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {data.proximosEncontros.map((enc) => (
+                <div key={enc.id} style={{
+                  padding: "14px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.04)"
+                }}>
+                  <p style={{ color: "white", fontWeight: "600", fontSize: "14px" }}>{enc.titulo}</p>
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", marginTop: "2px" }}>
+                    📍 {enc.local} • {new Date(enc.data_hora).toLocaleString('pt-BR')}
+                  </p>
+                  {enc.tema && (
+                    <span style={{
+                      display: "inline-block",
+                      marginTop: "6px",
+                      padding: "2px 8px",
+                      borderRadius: "8px",
+                      background: "rgba(211,252,114,0.1)",
+                      color: "#d3fc72",
+                      fontSize: "11px"
+                    }}>
+                      Tema: {enc.tema}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

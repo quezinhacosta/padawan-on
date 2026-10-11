@@ -468,18 +468,18 @@
   .loginFormWrapper {
     padding: 24px;
   }
+}
 
-  /* ============================================
+/* ============================================
    MENSAGEM DE ERRO
    ============================================ */
-    .errorMessage {
-    padding: 12px 16px;
-    border-radius: var(--radius-md);
-    background: rgba(255, 0, 0, 0.1);
-    border: 1px solid rgba(255, 0, 0, 0.2);
-    color: #ff6b6b;
-    font-size: 14px;
-    text-align: center;
-    animation: fadeIn 0.3s ease;
-    }
+.errorMessage {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.2);
+  color: #ff6b6b;
+  font-size: 14px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
 }
