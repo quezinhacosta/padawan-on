@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Padawan ON | Gestão de Apadrinhamento UNICAP",
-  description: "Plataforma de gestão do programa de extensão Padawan - Ciência da Computação UNICAP",
+  title: "SGA",
+  description: "Plataforma de gestão do programa de extensão - Ciência da Computação UNICAP",
   keywords: "Padawan, UNICAP, extensão, mentoria, apadrinhamento, calouros, ciência da computação",
   authors: [{ name: "Padawan ON Team" }],
 };

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Settings, User, Building, CheckCircle2 } from "lucide-react"
 
 export default function ConfiguracoesPage() {
   const [user, setUser] = useState<any>(null)
@@ -29,8 +30,8 @@ export default function ConfiguracoesPage() {
   return (
     <div>
       <div style={{ marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-          ⚙️ Configurações da Plataforma
+        <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white", display: "flex", alignItems: "center", gap: "10px" }}>
+          <Settings size={28} color="#d3fc72" /> Configurações da Plataforma
         </h1>
         <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
           Parâmetros do programa de extensão, semestre vigente e preferências
@@ -51,21 +52,24 @@ export default function ConfiguracoesPage() {
             border: "1px solid rgba(211,252,114,0.3)",
             color: "#d3fc72",
             fontSize: "14px",
-            textAlign: "center"
+            textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px"
           }}>
-            ✅ Configurações salvas com sucesso!
+            <CheckCircle2 size={18} /> Configurações salvas com sucesso!
           </div>
         )}
 
-        {/* Card do Usuário Conectado */}
         <div style={{
           background: "rgba(255,255,255,0.03)",
           borderRadius: "16px",
           padding: "24px",
           border: "1px solid rgba(255,255,255,0.05)"
         }}>
-          <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600", marginBottom: "16px" }}>
-            👤 Perfil Conectado
+          <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <User size={18} color="#d3fc72" /> Perfil Conectado
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "14px" }}>
             <p style={{ color: "rgba(255,255,255,0.5)" }}>
@@ -83,7 +87,6 @@ export default function ConfiguracoesPage() {
           </div>
         </div>
 
-        {/* Formulário de Parâmetros */}
         <form onSubmit={handleSalvar} style={{
           background: "rgba(255,255,255,0.03)",
           borderRadius: "16px",
@@ -93,8 +96,8 @@ export default function ConfiguracoesPage() {
           flexDirection: "column",
           gap: "18px"
         }}>
-          <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600" }}>
-            🏛️ Dados do Programa de Extensão
+          <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}>
+            <Building size={18} color="#d3fc72" /> Dados do Programa de Extensão
           </h3>
 
           <div>
@@ -181,4 +184,3 @@ export default function ConfiguracoesPage() {
     </div>
   )
 }
-

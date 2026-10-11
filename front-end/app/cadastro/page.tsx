@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { UserPlus, ArrowLeft } from "lucide-react"
 
 export default function Cadastro() {
   const router = useRouter()
@@ -26,8 +27,8 @@ export default function Cadastro() {
       return
     }
 
-    if (formData.senha.length < 6) {
-      setErro("A senha deve ter pelo menos 6 caracteres")
+    if (formData.senha.length < 4) {
+      setErro("A senha deve ter pelo menos 4 caracteres")
       return
     }
 
@@ -62,7 +63,6 @@ export default function Cadastro() {
       localStorage.setItem('user', JSON.stringify(data.usuario))
       router.push("/dashboard/calouro")
     } catch (error) {
-      console.error('Erro no cadastro:', error)
       setErro('Erro ao conectar com o servidor. Verifique se o backend está ativo.')
     } finally {
       setIsLoading(false)
@@ -80,7 +80,6 @@ export default function Cadastro() {
       position: "relative",
       overflow: "hidden"
     }}>
-      {/* Fundo com efeitos */}
       <div style={{
         position: "absolute",
         inset: 0,
@@ -92,22 +91,20 @@ export default function Cadastro() {
         background: "radial-gradient(circle at 70% 50%, #d3fc7211 0%, transparent 60%)",
       }} />
 
-      {/* Conteúdo principal */}
       <div style={{
         position: "relative",
         zIndex: 10,
         width: "100%",
         maxWidth: "500px",
       }}>
-        {/* Card de Cadastro */}
         <div style={{
           background: "rgba(255,255,255,0.03)",
           backdropFilter: "blur(20px)",
           border: "1px solid rgba(255,255,255,0.05)",
           borderRadius: "24px",
-          padding: "48px"
+          padding: "40px"
         }}>
-          <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <div style={{ textAlign: "center", marginBottom: "28px" }}>
             <div style={{
               display: "inline-flex",
               alignItems: "center",
@@ -120,41 +117,40 @@ export default function Cadastro() {
               fontWeight: "500",
               marginBottom: "16px"
             }}>
-              Cadastro
+              <UserPlus size={14} />
+              Cadastro de Ingressante
             </div>
             <h3 style={{ fontSize: "24px", fontWeight: "bold", color: "white" }}>
-              Criar conta
+              Criar Conta de Calouro
             </h3>
-            <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
-              Apenas calouros podem se cadastrar
+            <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px", fontSize: "14px" }}>
+              Acesso exclusivo para novos alunos do curso
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            {/* Nome de Usuário */}
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div>
               <label style={{
                 display: "block",
-                fontSize: "14px",
+                fontSize: "13px",
                 fontWeight: "500",
                 color: "rgba(255,255,255,0.6)",
                 marginBottom: "6px"
               }}>
-                 Nome de Usuário
+                Nome de Usuário
               </label>
               <input
                 type="text"
                 placeholder="Escolha um nome de usuário"
                 style={{
                   width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: "12px",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
                   background: "rgba(255,255,255,0.05)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   color: "white",
                   fontSize: "14px",
-                  outline: "none",
-                  transition: "all 0.3s ease"
+                  outline: "none"
                 }}
                 value={formData.nomeUsuario}
                 onChange={(e) => setFormData({ ...formData, nomeUsuario: e.target.value })}
@@ -162,11 +158,10 @@ export default function Cadastro() {
               />
             </div>
 
-            {/* Nome Completo */}
             <div>
               <label style={{
                 display: "block",
-                fontSize: "14px",
+                fontSize: "13px",
                 fontWeight: "500",
                 color: "rgba(255,255,255,0.6)",
                 marginBottom: "6px"
@@ -178,14 +173,13 @@ export default function Cadastro() {
                 placeholder="Digite seu nome completo"
                 style={{
                   width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: "12px",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
                   background: "rgba(255,255,255,0.05)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   color: "white",
                   fontSize: "14px",
-                  outline: "none",
-                  transition: "all 0.3s ease"
+                  outline: "none"
                 }}
                 value={formData.nomeCompleto}
                 onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
@@ -193,11 +187,10 @@ export default function Cadastro() {
               />
             </div>
 
-            {/* Email */}
             <div>
               <label style={{
                 display: "block",
-                fontSize: "14px",
+                fontSize: "13px",
                 fontWeight: "500",
                 color: "rgba(255,255,255,0.6)",
                 marginBottom: "6px"
@@ -209,25 +202,23 @@ export default function Cadastro() {
                 placeholder="exemplo@unicap.br"
                 style={{
                   width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: "12px",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
                   background: "rgba(255,255,255,0.05)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   color: "white",
                   fontSize: "14px",
-                  outline: "none",
-                  transition: "all 0.3s ease"
+                  outline: "none"
                 }}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
 
-            {/* RA */}
             <div>
               <label style={{
                 display: "block",
-                fontSize: "14px",
+                fontSize: "13px",
                 fontWeight: "500",
                 color: "rgba(255,255,255,0.6)",
                 marginBottom: "6px"
@@ -236,17 +227,16 @@ export default function Cadastro() {
               </label>
               <input
                 type="text"
-                placeholder="Digite seu RA"
+                placeholder="Digite seu RA institucional"
                 style={{
                   width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: "12px",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
                   background: "rgba(255,255,255,0.05)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   color: "white",
                   fontSize: "14px",
-                  outline: "none",
-                  transition: "all 0.3s ease"
+                  outline: "none"
                 }}
                 value={formData.ra}
                 onChange={(e) => setFormData({ ...formData, ra: e.target.value })}
@@ -254,11 +244,10 @@ export default function Cadastro() {
               />
             </div>
 
-            {/* Senha */}
             <div>
               <label style={{
                 display: "block",
-                fontSize: "14px",
+                fontSize: "13px",
                 fontWeight: "500",
                 color: "rgba(255,255,255,0.6)",
                 marginBottom: "6px"
@@ -267,30 +256,27 @@ export default function Cadastro() {
               </label>
               <input
                 type="password"
-                placeholder="Crie uma senha (mínimo 6 caracteres)"
+                placeholder="Crie uma senha de acesso"
                 style={{
                   width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: "12px",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
                   background: "rgba(255,255,255,0.05)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   color: "white",
                   fontSize: "14px",
-                  outline: "none",
-                  transition: "all 0.3s ease"
+                  outline: "none"
                 }}
                 value={formData.senha}
                 onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
                 required
-                minLength={6}
               />
             </div>
 
-            {/* Confirmar Senha */}
             <div>
               <label style={{
                 display: "block",
-                fontSize: "14px",
+                fontSize: "13px",
                 fontWeight: "500",
                 color: "rgba(255,255,255,0.6)",
                 marginBottom: "6px"
@@ -302,14 +288,13 @@ export default function Cadastro() {
                 placeholder="Digite a senha novamente"
                 style={{
                   width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: "12px",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
                   background: "rgba(255,255,255,0.05)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   color: "white",
                   fontSize: "14px",
-                  outline: "none",
-                  transition: "all 0.3s ease"
+                  outline: "none"
                 }}
                 value={formData.confirmarSenha}
                 onChange={(e) => setFormData({ ...formData, confirmarSenha: e.target.value })}
@@ -317,120 +302,60 @@ export default function Cadastro() {
               />
             </div>
 
-            {/* Mensagem de erro */}
             {erro && (
               <div style={{
                 padding: "12px",
-                borderRadius: "12px",
+                borderRadius: "10px",
                 background: "rgba(255,0,0,0.1)",
                 border: "1px solid rgba(255,0,0,0.2)",
                 color: "#ff6b6b",
-                fontSize: "14px",
+                fontSize: "13px",
                 textAlign: "center"
               }}>
                 {erro}
               </div>
             )}
 
-            {/* Botão */}
             <button
               type="submit"
               style={{
                 width: "100%",
-                padding: "14px",
-                borderRadius: "12px",
+                padding: "12px",
+                borderRadius: "10px",
                 background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
                 color: "black",
                 fontWeight: "600",
-                fontSize: "16px",
+                fontSize: "15px",
                 border: "none",
                 cursor: "pointer",
-                transition: "all 0.3s ease",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "8px"
+                gap: "8px",
+                marginTop: "4px"
               }}
               disabled={isLoading}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.02)"
-                e.currentTarget.style.boxShadow = "0 0 40px rgba(211,252,114,0.3)"
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)"
-                e.currentTarget.style.boxShadow = "none"
-              }}
             >
-              {isLoading ? (
-                <>
-                  <span style={{
-                    width: "20px",
-                    height: "20px",
-                    border: "2px solid rgba(0,0,0,0.3)",
-                    borderTop: "2px solid black",
-                    borderRadius: "50%",
-                    display: "inline-block",
-                    animation: "spin 1s linear infinite"
-                  }} />
-                  Cadastrando...
-                </>
-              ) : (
-                "Criar Conta"
-              )}
+              {isLoading ? "Cadastrando..." : "Finalizar Cadastro"}
             </button>
 
-            {/* Link para login */}
             <div style={{
               textAlign: "center",
-              fontSize: "14px",
+              fontSize: "13px",
               color: "rgba(255,255,255,0.4)"
             }}>
               Já tem uma conta?{" "}
               <Link href="/" style={{
                 color: "#d3fc72",
                 textDecoration: "none",
-                fontWeight: "500",
-                transition: "color 0.3s ease"
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.color = "#a8e04a"}
-              onMouseLeave={(e) => e.currentTarget.style.color = "#d3fc72"}
-              >
+                fontWeight: "500"
+              }}>
                 Faça login
               </Link>
             </div>
-
-            <p style={{
-              textAlign: "center",
-              fontSize: "12px",
-              color: "rgba(255,255,255,0.2)",
-              marginTop: "8px"
-            }}>
-              Programa de Extensão Padawan<br />
-              <span style={{ color: "#5531cc" }}>Ciência da Computação - UNICAP</span>
-            </p>
           </form>
         </div>
       </div>
-
-      {/* Footer */}
-      <div style={{
-        position: "absolute",
-        bottom: "24px",
-        left: 0,
-        right: 0,
-        textAlign: "center",
-        color: "rgba(255,255,255,0.1)",
-        fontSize: "12px"
-      }}>
-        © 2024 Padawan ON
-      </div>
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   )
 }

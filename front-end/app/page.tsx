@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { Shield, GraduationCap, Users, UserCheck, UserPlus, ArrowRight } from "lucide-react"
 import styles from "./page.module.css"
 
 type UserRole = "ORIENTADOR" | "MENTOR" | "CALOURO"
@@ -22,15 +23,13 @@ export default function Home() {
     setIsLoading(true)
     setErro("")
 
-    // Validações básicas
-    if (!formData.ra || !formData.senha || !formData.role) {
+    if (!formData.ra || !formData.senha) {
       setErro("Preencha todos os campos obrigatórios")
       setIsLoading(false)
       return
     }
 
     try {
-      // Fazer requisição para o backend
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -39,49 +38,55 @@ export default function Home() {
         body: JSON.stringify({
           ra: formData.ra,
           senha: formData.senha,
-          role: formData.role,
+          role: formData.role || undefined,
         }),
       })
 
       const data = await response.json()
 
-      // Verificar se a requisição foi bem sucedida
       if (!response.ok) {
         setErro(data.error || 'Erro ao fazer login')
         setIsLoading(false)
         return
       }
 
-      // Salvar dados do usuário e token
       if (data.token) {
         localStorage.setItem('token', data.token)
       }
       localStorage.setItem('user', JSON.stringify(data.usuario))
 
-      // Redirecionar baseado no role
-      if (formData.role === "ORIENTADOR") {
+      const role = data.usuario.role
+      if (role === "ORIENTADOR") {
         router.push("/dashboard")
-      } else if (formData.role === "MENTOR") {
+      } else if (role === "MENTOR") {
         router.push("/dashboard/mentor")
-      } else if (formData.role === "CALOURO") {
+      } else if (role === "CALOURO") {
         router.push("/dashboard/calouro")
       }
 
     } catch (error) {
-      console.error('Erro no login:', error)
       setErro('Erro ao conectar com o servidor. Verifique se o backend está rodando.')
     } finally {
       setIsLoading(false)
     }
   }
 
+  const preencherAdmin = () => {
+    setFormData({
+      ra: "quezia@unicap.br",
+      senha: "2011",
+      role: "ORIENTADOR"
+    })
+  }
+
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
-        {/* Left Side - Branding */}
         <div className={styles.loginBrand}>
           <div className={styles.brandHeader}>
-            <div className={styles.brandIcon}>P</div>
+            <div className={styles.brandIcon}>
+              <GraduationCap size={32} />
+            </div>
             <div>
               <h1 className={styles.brandTitle}>
                 <span className={styles.brandHighlight}>SGA</span>
@@ -101,49 +106,41 @@ export default function Home() {
           </div>
 
           <div className={styles.brandCards}>
-            {[
-              { 
-                label: "Orientadores", 
-                desc: "Gestão", 
-                icon: "O" 
-              },
-              { 
-                label: "Mentores", 
-                desc: "Acompanhamento", 
-                icon: "M" 
-              },
-              { 
-                label: "Calouros", 
-                desc: "Suporte", 
-                icon: "C" 
-              },
-            ].map((item, index) => (
-              <div key={index} className={styles.brandCard}>
-                <div className={styles.brandCardIcon}>
-                  {item.icon}
-                </div>
-                <p className={styles.brandCardLabel}>
-                  {item.label}
-                </p>
-                <p className={styles.brandCardDesc}>
-                  {item.desc}
-                </p>
+            <div className={styles.brandCard}>
+              <div className={styles.brandCardIcon}>
+                <Shield size={24} />
               </div>
-            ))}
+              <p className={styles.brandCardLabel}>Orientadores</p>
+              <p className={styles.brandCardDesc}>Gestão</p>
+            </div>
+            <div className={styles.brandCard}>
+              <div className={styles.brandCardIcon}>
+                <UserCheck size={24} />
+              </div>
+              <p className={styles.brandCardLabel}>Mentores</p>
+              <p className={styles.brandCardDesc}>Acompanhamento</p>
+            </div>
+            <div className={styles.brandCard}>
+              <div className={styles.brandCardIcon}>
+                <Users size={24} />
+              </div>
+              <p className={styles.brandCardLabel}>Calouros</p>
+              <p className={styles.brandCardDesc}>Suporte</p>
+            </div>
           </div>
         </div>
 
-        {/* Right Side - Login Form */}
         <div className={styles.loginFormWrapper}>
           <div className={styles.loginFormHeader}>
             <span className={styles.badgeModern}>
+              <Shield size={14} style={{ marginRight: "6px" }} />
               Acesso Seguro
             </span>
             <h3 className={styles.loginFormTitle}>
               Bem-vindo de volta
             </h3>
             <p className={styles.loginFormSubtitle}>
-              Entre com suas credenciais
+              Entre com suas credenciais acadêmicas
             </p>
           </div>
 
@@ -156,11 +153,11 @@ export default function Home() {
 
             <div className={styles.formGroup}>
               <label className={styles.labelModern}>
-                RA / Matrícula
+                RA / Matrícula ou E-mail
               </label>
               <input
                 type="text"
-                placeholder="Digite seu RA"
+                placeholder="Digite seu RA ou e-mail institucional"
                 className={styles.inputModern}
                 value={formData.ra}
                 onChange={(e) => setFormData({ 
@@ -201,11 +198,10 @@ export default function Home() {
                   ...formData, 
                   role: e.target.value as UserRole 
                 })}
-                required
                 disabled={isLoading}
               >
                 <option value="">
-                  Selecione seu perfil
+                  Identificar automaticamente ou selecionar
                 </option>
                 <option value="ORIENTADOR">
                   Orientador / Administrador
@@ -219,66 +215,30 @@ export default function Home() {
               </select>
             </div>
 
-            {/* Acesso rápido para testes */}
             <div style={{
               display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-              padding: "12px",
+              justifyContent: "center",
+              padding: "10px",
               background: "rgba(255,255,255,0.02)",
-              borderRadius: "12px",
+              borderRadius: "10px",
               border: "1px solid rgba(255,255,255,0.05)"
             }}>
-              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textAlign: "center" }}>
-                ⚡ Preenchimento rápido para demonstração:
-              </span>
-              <div style={{ display: "flex", gap: "6px", justifyContent: "center" }}>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ra: "1001", senha: "123456", role: "ORIENTADOR" })}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    background: "rgba(211,252,114,0.1)",
-                    border: "1px solid rgba(211,252,114,0.2)",
-                    color: "#d3fc72",
-                    fontSize: "11px",
-                    cursor: "pointer"
-                  }}
-                >
-                  Orientador
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ra: "2001", senha: "123456", role: "MENTOR" })}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    background: "rgba(85,49,204,0.15)",
-                    border: "1px solid rgba(85,49,204,0.3)",
-                    color: "#a78bfa",
-                    fontSize: "11px",
-                    cursor: "pointer"
-                  }}
-                >
-                  Mentor
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ra: "3001", senha: "123456", role: "CALOURO" })}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    background: "rgba(255,107,107,0.15)",
-                    border: "1px solid rgba(255,107,107,0.3)",
-                    color: "#ff8787",
-                    fontSize: "11px",
-                    cursor: "pointer"
-                  }}
-                >
-                  Calouro
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={preencherAdmin}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#d3fc72",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}
+              >
+                Preencher Administrador (Quezia) <ArrowRight size={14} />
+              </button>
             </div>
 
             <button
@@ -300,11 +260,11 @@ export default function Home() {
               <p>
                 Não tem uma conta?{" "}
                 <Link href="/cadastro" className={styles.linkModern}>
-                  Cadastre-se
+                  Cadastre-se como Calouro
                 </Link>
               </p>
               <p className={styles.loginCredits}>
-                SGA - Sistema de Gestão de Apadrinhamento 
+                SGA - Sistema de Gestão de Apadrinhamento • UNICAP
               </p>
             </div>
           </form>
@@ -312,7 +272,7 @@ export default function Home() {
       </div>
 
       <footer className={styles.loginPageFooter}>
-        © 2026 SGA
+        © 2026 SGA • UNICAP
       </footer>
     </div>
   )

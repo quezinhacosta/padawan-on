@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { UserCheck, Plus, Search, Trash2, Mail, Users, Check, X } from "lucide-react"
 
 interface Mentor {
   id: number
@@ -54,7 +55,6 @@ export default function MentoresAdminPage() {
         setMentores(data)
       }
     } catch (err) {
-      console.error("Erro ao carregar mentores:", err)
     } finally {
       setIsLoading(false)
     }
@@ -71,7 +71,21 @@ export default function MentoresAdminPage() {
         setMentores(mentores.map(m => m.id === id ? { ...m, disponivel: !atual } : m))
       }
     } catch (err) {
-      console.error("Erro ao alterar disponibilidade:", err)
+    }
+  }
+
+  const handleExcluirMentor = async (id: number, nome: string) => {
+    if (!confirm(`Deseja realmente remover o mentor "${nome}"? Esta ação não pode ser desfeita.`)) return
+
+    try {
+      const res = await fetch(`/api/mentores/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      })
+      if (res.ok) {
+        setMentores(mentores.filter(m => m.id !== id))
+      }
+    } catch (err) {
     }
   }
 
@@ -133,13 +147,15 @@ export default function MentoresAdminPage() {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: "32px"
+        marginBottom: "32px",
+        flexWrap: "wrap",
+        gap: "16px"
       }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-            🧑‍🎓 Gerenciamento de Mentores
+          <h1 style={{ fontSize: "26px", fontWeight: "bold", color: "white" }}>
+            Gerenciamento de Mentores
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
+          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px", fontSize: "14px" }}>
             Cadastre novos alunos mentores, defina limites de vagas e acompanhe a disponibilidade
           </p>
         </div>
@@ -149,45 +165,54 @@ export default function MentoresAdminPage() {
             setShowModal(true)
           }}
           style={{
-            padding: "10px 24px",
-            borderRadius: "12px",
+            padding: "10px 20px",
+            borderRadius: "10px",
             background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
             color: "black",
             fontWeight: "600",
             border: "none",
             cursor: "pointer",
-            fontSize: "14px",
-            boxShadow: "0 0 25px rgba(211,252,114,0.2)"
+            fontSize: "13px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
           }}
         >
-          + Adicionar Mentor
+          <Plus size={16} /> Adicionar Mentor
         </button>
       </div>
 
-      {/* Filtros */}
       <div style={{
         display: "flex",
         gap: "12px",
         marginBottom: "24px",
         flexWrap: "wrap"
       }}>
-        <input
-          type="text"
-          placeholder="Buscar por nome, RA ou especialidade..."
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          style={{
-            padding: "10px 16px",
-            borderRadius: "8px",
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            color: "white",
-            fontSize: "14px",
-            flex: 1,
-            minWidth: "240px",
-            outline: "none"
-          }}
-        />
+        <div style={{
+          flex: 1,
+          minWidth: "240px",
+          position: "relative",
+          display: "flex",
+          alignItems: "center"
+        }}>
+          <Search size={16} style={{ position: "absolute", left: "14px", color: "rgba(255,255,255,0.4)" }} />
+          <input
+            type="text"
+            placeholder="Buscar por nome, RA ou especialidade..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 14px 10px 38px",
+              borderRadius: "8px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "white",
+              fontSize: "14px",
+              outline: "none"
+            }}
+          />
+        </div>
         <select
           value={filtroStatus}
           onChange={(e) => setFiltroStatus(e.target.value)}
@@ -207,7 +232,6 @@ export default function MentoresAdminPage() {
         </select>
       </div>
 
-      {/* Lista de Mentores */}
       {isLoading ? (
         <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.4)" }}>
           Carregando mentores...
@@ -221,7 +245,7 @@ export default function MentoresAdminPage() {
           border: "1px dashed rgba(255,255,255,0.1)",
           color: "rgba(255,255,255,0.4)"
         }}>
-          Nenhum mentor encontrado com os filtros aplicados.
+          Nenhum mentor cadastrado no momento.
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -229,7 +253,7 @@ export default function MentoresAdminPage() {
             <div key={mentor.id} style={{
               background: "rgba(255,255,255,0.03)",
               borderRadius: "12px",
-              padding: "20px",
+              padding: "18px 22px",
               border: "1px solid rgba(255,255,255,0.05)",
               display: "flex",
               justifyContent: "space-between",
@@ -239,8 +263,8 @@ export default function MentoresAdminPage() {
             }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
-                  <span style={{ fontSize: "20px" }}>🧑‍🎓</span>
-                  <h3 style={{ color: "white", fontWeight: "600", fontSize: "16px" }}>{mentor.nome}</h3>
+                  <UserCheck size={18} color="#d3fc72" />
+                  <h3 style={{ color: "white", fontWeight: "600", fontSize: "15px" }}>{mentor.nome}</h3>
                   <button
                     onClick={() => handleToggleDisponibilidade(mentor.id, mentor.disponivel)}
                     style={{
@@ -253,26 +277,25 @@ export default function MentoresAdminPage() {
                       border: "none",
                       cursor: "pointer"
                     }}
-                    title="Clique para alternar disponibilidade"
                   >
-                    {mentor.disponivel ? "🟢 Disponível" : "🔴 Ocupado"}
+                    {mentor.disponivel ? "Disponível" : "Ocupado"}
                   </button>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>
-                  <span>📧 {mentor.email}</span>
-                  <span>🆔 RA: {mentor.ra}</span>
-                  <span>👶 {mentor.calouros_atendidos || 0} / {mentor.max_calouros} calouros</span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", color: "rgba(255,255,255,0.5)", fontSize: "12px" }}>
+                  <span>E-mail: {mentor.email}</span>
+                  <span>RA: {mentor.ra}</span>
+                  <span>Vagas: {mentor.calouros_atendidos || 0} / {mentor.max_calouros}</span>
                   {mentor.especialidades && (
-                    <span style={{ color: "#a78bfa" }}>💡 {mentor.especialidades}</span>
+                    <span style={{ color: "#a78bfa" }}>Especialidades: {mentor.especialidades}</span>
                   )}
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "8px" }}>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 <button
                   onClick={() => handleToggleDisponibilidade(mentor.id, mentor.disponivel)}
                   style={{
-                    padding: "8px 14px",
+                    padding: "6px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
@@ -283,13 +306,30 @@ export default function MentoresAdminPage() {
                 >
                   Alternar Status
                 </button>
+                <button
+                  onClick={() => handleExcluirMentor(mentor.id, mentor.nome)}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: "8px",
+                    background: "rgba(255,0,0,0.1)",
+                    border: "1px solid rgba(255,0,0,0.2)",
+                    color: "#ff6b6b",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    fontSize: "12px"
+                  }}
+                  title="Excluir Mentor"
+                >
+                  <Trash2 size={14} /> Excluir
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Modal Adicionar Mentor */}
       {showModal && (
         <div style={{
           position: "fixed",
@@ -304,17 +344,17 @@ export default function MentoresAdminPage() {
         }}>
           <div style={{
             background: "#121212",
-            borderRadius: "20px",
-            padding: "32px",
+            borderRadius: "18px",
+            padding: "28px",
             maxWidth: "480px",
             width: "100%",
             border: "1px solid rgba(255,255,255,0.1)"
           }}>
-            <h2 style={{ color: "white", fontSize: "22px", fontWeight: "bold", marginBottom: "6px" }}>
+            <h2 style={{ color: "white", fontSize: "20px", fontWeight: "bold", marginBottom: "4px" }}>
               Cadastrar Novo Mentor
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "20px" }}>
-              Preencha os dados do veterano para integrá-lo ao programa.
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px", marginBottom: "18px" }}>
+              Preencha os dados do aluno para cadastrá-lo como tutor.
             </p>
 
             {erro && (
@@ -325,28 +365,28 @@ export default function MentoresAdminPage() {
                 border: "1px solid rgba(255,0,0,0.2)",
                 color: "#ff6b6b",
                 fontSize: "13px",
-                marginBottom: "16px"
+                marginBottom: "14px"
               }}>
                 {erro}
               </div>
             )}
 
-            <form onSubmit={handleCadastrarMentor} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <form onSubmit={handleCadastrarMentor} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                  Nome Completo *
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                  Nome Completo
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Lucas Ferreira"
+                  placeholder="Nome do mentor"
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.nomeCompleto}
@@ -357,20 +397,20 @@ export default function MentoresAdminPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                    RA / Matrícula *
+                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                    RA / Matrícula
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: 2022005"
+                    placeholder="Matrícula"
                     style={{
                       width: "100%",
-                      padding: "10px 14px",
+                      padding: "10px 12px",
                       borderRadius: "8px",
                       background: "rgba(255,255,255,0.05)",
                       border: "1px solid rgba(255,255,255,0.1)",
                       color: "white",
-                      fontSize: "14px",
+                      fontSize: "13px",
                       outline: "none"
                     }}
                     value={formData.ra}
@@ -379,8 +419,8 @@ export default function MentoresAdminPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                    Máx. de Calouros
+                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                    Limite de Calouros
                   </label>
                   <input
                     type="number"
@@ -388,12 +428,12 @@ export default function MentoresAdminPage() {
                     max="10"
                     style={{
                       width: "100%",
-                      padding: "10px 14px",
+                      padding: "10px 12px",
                       borderRadius: "8px",
                       background: "rgba(255,255,255,0.05)",
                       border: "1px solid rgba(255,255,255,0.1)",
                       color: "white",
-                      fontSize: "14px",
+                      fontSize: "13px",
                       outline: "none"
                     }}
                     value={formData.maxCalouros}
@@ -403,20 +443,20 @@ export default function MentoresAdminPage() {
               </div>
 
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                  E-mail Institucional (Opcional)
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                  E-mail Institucional
                 </label>
                 <input
                   type="email"
-                  placeholder="lucas@unicap.br"
+                  placeholder="mentor@unicap.br"
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.email}
@@ -425,20 +465,20 @@ export default function MentoresAdminPage() {
               </div>
 
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                  Especialidades / Tecnologias
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                  Especialidades
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Python, Algoritmos, Java, Web"
+                  placeholder="Python, Algoritmos, Java"
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.especialidades}
@@ -446,12 +486,12 @@ export default function MentoresAdminPage() {
                 />
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
                   style={{
-                    padding: "10px 16px",
+                    padding: "8px 14px",
                     borderRadius: "8px",
                     background: "transparent",
                     border: "1px solid rgba(255,255,255,0.1)",
@@ -466,7 +506,7 @@ export default function MentoresAdminPage() {
                   type="submit"
                   disabled={isSubmitting}
                   style={{
-                    padding: "10px 20px",
+                    padding: "8px 18px",
                     borderRadius: "8px",
                     background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
                     border: "none",
@@ -486,4 +526,3 @@ export default function MentoresAdminPage() {
     </div>
   )
 }
-

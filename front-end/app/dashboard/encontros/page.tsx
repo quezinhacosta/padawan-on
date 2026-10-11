@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Calendar, Plus, Trash2, Clock, CheckCircle2, ClipboardCheck, MapPin, Users } from "lucide-react"
 
 interface Encontro {
   id: number
@@ -81,9 +82,23 @@ export default function EncontrosPage() {
         setGrupos(dataG)
       }
     } catch (err) {
-      console.error("Erro ao carregar encontros:", err)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleExcluirEncontro = async (id: number, titulo: string) => {
+    if (!confirm(`Deseja realmente remover o encontro "${titulo}"?`)) return
+
+    try {
+      const res = await fetch(`/api/encontros/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      })
+      if (res.ok) {
+        setEncontros(encontros.filter(e => e.id !== id))
+      }
+    } catch (err) {
     }
   }
 
@@ -146,7 +161,6 @@ export default function EncontrosPage() {
         }
       }
     } catch (err) {
-      console.error("Erro ao abrir frequência:", err)
     }
   }
 
@@ -167,7 +181,6 @@ export default function EncontrosPage() {
         carregarDados()
       }
     } catch (err) {
-      console.error("Erro ao salvar frequência:", err)
     } finally {
       setIsSubmitting(false)
     }
@@ -197,10 +210,10 @@ export default function EncontrosPage() {
         gap: "16px"
       }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-            📅 Gestão de Encontros e Frequência
+          <h1 style={{ fontSize: "26px", fontWeight: "bold", color: "white" }}>
+            Gestão de Encontros e Frequência
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
+          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px", fontSize: "14px" }}>
             Agende reuniões de mentoria, controle a assiduidade e registre temas abordados
           </p>
         </div>
@@ -210,22 +223,23 @@ export default function EncontrosPage() {
             setShowModalAgendar(true)
           }}
           style={{
-            padding: "10px 24px",
-            borderRadius: "12px",
+            padding: "10px 20px",
+            borderRadius: "10px",
             background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
             color: "black",
             fontWeight: "600",
             border: "none",
             cursor: "pointer",
-            fontSize: "14px",
-            boxShadow: "0 0 25px rgba(211,252,114,0.2)"
+            fontSize: "13px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
           }}
         >
-          + Agendar Novo Encontro
+          <Plus size={16} /> Agendar Novo Encontro
         </button>
       </div>
 
-      {/* Filtro */}
       <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
         <select
           value={filtroStatus}
@@ -247,7 +261,6 @@ export default function EncontrosPage() {
         </select>
       </div>
 
-      {/* Lista de Encontros */}
       {isLoading ? (
         <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.4)" }}>
           Carregando encontros...
@@ -257,19 +270,19 @@ export default function EncontrosPage() {
           textAlign: "center",
           padding: "50px",
           background: "rgba(255,255,255,0.02)",
-          borderRadius: "16px",
+          borderRadius: "14px",
           border: "1px dashed rgba(255,255,255,0.1)",
           color: "rgba(255,255,255,0.4)"
         }}>
-          Nenhum encontro encontrado.
+          Nenhum encontro registrado no momento.
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {encontrosFiltrados.map((enc) => (
             <div key={enc.id} style={{
               background: "rgba(255,255,255,0.03)",
               borderRadius: "14px",
-              padding: "20px",
+              padding: "18px 22px",
               border: "1px solid rgba(255,255,255,0.05)",
               display: "flex",
               justifyContent: "space-between",
@@ -279,7 +292,8 @@ export default function EncontrosPage() {
             }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px" }}>
-                  <h3 style={{ color: "white", fontWeight: "600", fontSize: "16px" }}>{enc.titulo}</h3>
+                  <Calendar size={18} color="#d3fc72" />
+                  <h3 style={{ color: "white", fontWeight: "600", fontSize: "15px" }}>{enc.titulo}</h3>
                   <span style={{
                     padding: "3px 10px",
                     borderRadius: "12px",
@@ -292,19 +306,19 @@ export default function EncontrosPage() {
                            enc.status === "AGENDADO" ? "#a78bfa" :
                            "#ff6b6b"
                   }}>
-                    {enc.status === "REALIZADO" ? "✅ Realizado" :
-                     enc.status === "AGENDADO" ? "⏳ Agendado" :
-                     "❌ Cancelado"}
+                    {enc.status === "REALIZADO" ? "Realizado" :
+                     enc.status === "AGENDADO" ? "Agendado" :
+                     "Cancelado"}
                   </span>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>
-                  <span>👥 {enc.grupo_nome}</span>
-                  {enc.mentor_nome && <span>🧑‍🎓 {enc.mentor_nome}</span>}
-                  <span>📍 {enc.local}</span>
-                  <span>📅 {new Date(enc.data_hora).toLocaleString('pt-BR')} ({enc.duracao} min)</span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", color: "rgba(255,255,255,0.5)", fontSize: "12px" }}>
+                  <span>Grupo: {enc.grupo_nome}</span>
+                  {enc.mentor_nome && <span>Mentor: {enc.mentor_nome}</span>}
+                  <span>Local: {enc.local}</span>
+                  <span>Data: {new Date(enc.data_hora).toLocaleString('pt-BR')} ({enc.duracao} min)</span>
                   {enc.status === "REALIZADO" && (
                     <span style={{ color: "#d3fc72" }}>
-                      ✅ Frequência: {enc.presentes_count} / {enc.total_esperado}
+                      Presença: {enc.presentes_count} / {enc.total_esperado}
                     </span>
                   )}
                 </div>
@@ -315,21 +329,42 @@ export default function EncontrosPage() {
                 )}
               </div>
 
-              <div style={{ display: "flex", gap: "8px" }}>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 <button
                   onClick={() => abrirModalFrequencia(enc.id)}
                   style={{
-                    padding: "8px 16px",
+                    padding: "6px 12px",
                     borderRadius: "8px",
                     background: "rgba(211,252,114,0.1)",
                     border: "1px solid rgba(211,252,114,0.25)",
                     color: "#d3fc72",
                     fontSize: "12px",
                     fontWeight: "500",
-                    cursor: "pointer"
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px"
                   }}
                 >
-                  📋 Lista de Presença
+                  <ClipboardCheck size={14} /> Presença
+                </button>
+                <button
+                  onClick={() => handleExcluirEncontro(enc.id, enc.titulo)}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: "8px",
+                    background: "rgba(255,0,0,0.1)",
+                    border: "1px solid rgba(255,0,0,0.2)",
+                    color: "#ff6b6b",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px"
+                  }}
+                  title="Excluir Encontro"
+                >
+                  <Trash2 size={14} /> Excluir
                 </button>
               </div>
             </div>
@@ -337,7 +372,6 @@ export default function EncontrosPage() {
         </div>
       )}
 
-      {/* Modal Agendar Encontro */}
       {showModalAgendar && (
         <div style={{
           position: "fixed",
@@ -352,17 +386,17 @@ export default function EncontrosPage() {
         }}>
           <div style={{
             background: "#121212",
-            borderRadius: "20px",
-            padding: "32px",
+            borderRadius: "18px",
+            padding: "28px",
             maxWidth: "500px",
             width: "100%",
             border: "1px solid rgba(255,255,255,0.1)"
           }}>
-            <h2 style={{ color: "white", fontSize: "22px", fontWeight: "bold", marginBottom: "6px" }}>
+            <h2 style={{ color: "white", fontSize: "20px", fontWeight: "bold", marginBottom: "4px" }}>
               Agendar Encontro
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "20px" }}>
-              Preencha os dados da sessão de mentoria.
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px", marginBottom: "18px" }}>
+              Preencha os dados da sessão de tutoria.
             </p>
 
             {erro && (
@@ -373,26 +407,26 @@ export default function EncontrosPage() {
                 border: "1px solid rgba(255,0,0,0.2)",
                 color: "#ff6b6b",
                 fontSize: "13px",
-                marginBottom: "16px"
+                marginBottom: "14px"
               }}>
                 {erro}
               </div>
             )}
 
-            <form onSubmit={handleAgendar} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <form onSubmit={handleAgendar} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                  Grupo Participante *
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                  Grupo Participante
                 </label>
                 <select
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "#1a1a1a",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.grupoId}
@@ -409,20 +443,20 @@ export default function EncontrosPage() {
               </div>
 
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                  Título do Encontro *
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                  Título do Encontro
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Tira-dúvidas de Programação I"
+                  placeholder="Ex: Tira-dúvidas de Programação"
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.titulo}
@@ -433,19 +467,19 @@ export default function EncontrosPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                    Data e Horário *
+                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                    Data e Horário
                   </label>
                   <input
                     type="datetime-local"
                     style={{
                       width: "100%",
-                      padding: "10px 14px",
+                      padding: "10px 12px",
                       borderRadius: "8px",
                       background: "#1a1a1a",
                       border: "1px solid rgba(255,255,255,0.1)",
                       color: "white",
-                      fontSize: "13px",
+                      fontSize: "12px",
                       outline: "none"
                     }}
                     value={formData.dataHora}
@@ -454,7 +488,7 @@ export default function EncontrosPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
+                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
                     Duração (minutos)
                   </label>
                   <input
@@ -463,12 +497,12 @@ export default function EncontrosPage() {
                     step="15"
                     style={{
                       width: "100%",
-                      padding: "10px 14px",
+                      padding: "10px 12px",
                       borderRadius: "8px",
                       background: "rgba(255,255,255,0.05)",
                       border: "1px solid rgba(255,255,255,0.1)",
                       color: "white",
-                      fontSize: "14px",
+                      fontSize: "13px",
                       outline: "none"
                     }}
                     value={formData.duracao}
@@ -478,20 +512,20 @@ export default function EncontrosPage() {
               </div>
 
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                  Local / Link da Reunião
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                  Local ou Link
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Laboratório 3 ou meet.google.com/xyz"
+                  placeholder="Sala ou link do Meet"
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.local}
@@ -500,20 +534,20 @@ export default function EncontrosPage() {
               </div>
 
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
                   Tema / Assunto
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Introdução a Funções e Recursão"
+                  placeholder="Tema da mentoria"
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.tema}
@@ -521,12 +555,12 @@ export default function EncontrosPage() {
                 />
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
                 <button
                   type="button"
                   onClick={() => setShowModalAgendar(false)}
                   style={{
-                    padding: "10px 16px",
+                    padding: "8px 14px",
                     borderRadius: "8px",
                     background: "transparent",
                     border: "1px solid rgba(255,255,255,0.1)",
@@ -541,7 +575,7 @@ export default function EncontrosPage() {
                   type="submit"
                   disabled={isSubmitting}
                   style={{
-                    padding: "10px 20px",
+                    padding: "8px 18px",
                     borderRadius: "8px",
                     background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
                     border: "none",
@@ -559,7 +593,6 @@ export default function EncontrosPage() {
         </div>
       )}
 
-      {/* Modal Lista de Frequência */}
       {showModalFrequencia && (
         <div style={{
           position: "fixed",
@@ -574,17 +607,17 @@ export default function EncontrosPage() {
         }}>
           <div style={{
             background: "#121212",
-            borderRadius: "20px",
-            padding: "32px",
-            maxWidth: "520px",
+            borderRadius: "18px",
+            padding: "28px",
+            maxWidth: "500px",
             width: "100%",
             border: "1px solid rgba(255,255,255,0.1)"
           }}>
-            <h2 style={{ color: "white", fontSize: "20px", fontWeight: "bold", marginBottom: "4px" }}>
-              📋 Registro de Presença
+            <h2 style={{ color: "white", fontSize: "19px", fontWeight: "bold", marginBottom: "4px" }}>
+              Registro de Presença
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", marginBottom: "20px" }}>
-              Encontro: {showModalFrequencia.titulo} ({showModalFrequencia.grupo_nome})
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", marginBottom: "18px" }}>
+              Encontro: {showModalFrequencia.titulo}
             </p>
 
             <form onSubmit={handleSalvarFrequencia}>
@@ -592,9 +625,9 @@ export default function EncontrosPage() {
                 display: "flex",
                 flexDirection: "column",
                 gap: "8px",
-                maxHeight: "260px",
+                maxHeight: "240px",
                 overflowY: "auto",
-                marginBottom: "20px"
+                marginBottom: "18px"
               }}>
                 {frequenciaRegistros.length === 0 ? (
                   <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px", textAlign: "center" }}>
@@ -614,10 +647,10 @@ export default function EncontrosPage() {
                         border: "1px solid rgba(255,255,255,0.05)"
                       }}>
                         <div>
-                          <p style={{ color: "white", fontSize: "14px", fontWeight: "500" }}>
+                          <p style={{ color: "white", fontSize: "13px", fontWeight: "500" }}>
                             {info?.nome_completo || `Calouro #${item.calouroId}`}
                           </p>
-                          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>
+                          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px" }}>
                             RA: {info?.ra}
                           </p>
                         </div>
@@ -626,7 +659,7 @@ export default function EncontrosPage() {
                           onClick={() => handleTogglePresenca(item.calouroId)}
                           style={{
                             padding: "6px 14px",
-                            borderRadius: "8px",
+                            borderRadius: "6px",
                             border: "none",
                             background: item.presente === 1 ? "rgba(211,252,114,0.2)" : "rgba(255,107,107,0.2)",
                             color: item.presente === 1 ? "#d3fc72" : "#ff6b6b",
@@ -635,7 +668,7 @@ export default function EncontrosPage() {
                             fontWeight: "600"
                           }}
                         >
-                          {item.presente === 1 ? "✓ Presente" : "✗ Ausente"}
+                          {item.presente === 1 ? "Presente" : "Ausente"}
                         </button>
                       </div>
                     )
@@ -648,7 +681,7 @@ export default function EncontrosPage() {
                   type="button"
                   onClick={() => setShowModalFrequencia(null)}
                   style={{
-                    padding: "10px 16px",
+                    padding: "8px 14px",
                     borderRadius: "8px",
                     background: "transparent",
                     border: "1px solid rgba(255,255,255,0.1)",
@@ -663,7 +696,7 @@ export default function EncontrosPage() {
                   type="submit"
                   disabled={isSubmitting}
                   style={{
-                    padding: "10px 20px",
+                    padding: "8px 18px",
                     borderRadius: "8px",
                     background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
                     border: "none",
@@ -673,7 +706,7 @@ export default function EncontrosPage() {
                     fontSize: "13px"
                   }}
                 >
-                  {isSubmitting ? "Salvando..." : "Salvar Frequência"}
+                  {isSubmitting ? "Salvando..." : "Salvar Presenças"}
                 </button>
               </div>
             </form>
@@ -683,4 +716,3 @@ export default function EncontrosPage() {
     </div>
   )
 }
-

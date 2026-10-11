@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { UserCheck, Mail, Send } from "lucide-react"
 
 interface CalouroPerfil {
   mentor_nome: string | null
@@ -33,7 +34,7 @@ export default function MeuMentorPage() {
         setPerfil(data)
       }
     } catch (err) {
-      console.error("Erro ao carregar perfil do calouro:", err)
+      console.error(err)
     } finally {
       setIsLoading(false)
     }
@@ -42,8 +43,8 @@ export default function MeuMentorPage() {
   return (
     <div>
       <div style={{ marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-          🧑‍🎓 Informações do Meu Mentor
+        <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white", display: "flex", alignItems: "center", gap: "10px" }}>
+          <UserCheck size={28} color="#d3fc72" /> Informações do Meu Mentor
         </h1>
         <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
           Detalhes de contato e canal de apoio para tirar dúvidas acadêmicas
@@ -113,7 +114,7 @@ export default function MeuMentorPage() {
                 background: perfil.mentor_disponivel ? "rgba(211,252,114,0.2)" : "rgba(255,107,107,0.2)",
                 color: perfil.mentor_disponivel ? "#d3fc72" : "#ff6b6b"
               }}>
-                {perfil.mentor_disponivel ? "🟢 Disponível" : "🔴 Ocupado"}
+                {perfil.mentor_disponivel ? "Disponível" : "Ocupado"}
               </span>
             </div>
           </div>
@@ -131,8 +132,8 @@ export default function MeuMentorPage() {
             <p style={{ color: "rgba(255,255,255,0.5)" }}>
               Canal Oficial de Comunicação:
             </p>
-            <p style={{ color: "#d3fc72", fontWeight: "500" }}>
-              📧 {perfil.mentor_email}
+            <p style={{ color: "#d3fc72", fontWeight: "500", display: "flex", alignItems: "center", gap: "6px" }}>
+              <Mail size={16} /> {perfil.mentor_email}
             </p>
           </div>
 
@@ -147,14 +148,17 @@ export default function MeuMentorPage() {
               textAlign: "center",
               textDecoration: "none",
               fontSize: "14px",
-              boxShadow: "0 0 25px rgba(211,252,114,0.2)"
+              boxShadow: "0 0 25px rgba(211,252,114,0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px"
             }}
           >
-            💬 Enviar Mensagem por E-mail
+            <Send size={16} /> Enviar Mensagem por E-mail
           </a>
         </div>
       )}
     </div>
   )
 }
-

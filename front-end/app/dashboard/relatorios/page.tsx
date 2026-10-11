@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { BarChart3, Printer, Users, CheckCircle2, TrendingUp, Calendar } from "lucide-react"
 
 interface ReportStats {
   totalMentores: number
@@ -45,7 +46,7 @@ export default function RelatoriosPage() {
       if (resGrupos.ok) setGrupos(await resGrupos.json())
       if (resEnc.ok) setEncontros(await resEnc.json())
     } catch (err) {
-      console.error("Erro ao carregar relatórios:", err)
+      console.error(err)
     } finally {
       setIsLoading(false)
     }
@@ -65,8 +66,8 @@ export default function RelatoriosPage() {
         gap: "16px"
       }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-            📈 Relatórios e Indicadores do Programa
+          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white", display: "flex", alignItems: "center", gap: "10px" }}>
+            <BarChart3 size={28} color="#d3fc72" /> Relatórios e Indicadores do Programa
           </h1>
           <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
             Métricas consolidadas de desempenho, assiduidade e integração dos calouros
@@ -87,7 +88,7 @@ export default function RelatoriosPage() {
             gap: "8px"
           }}
         >
-          🖨️ Exportar / Imprimir
+          <Printer size={16} /> Exportar / Imprimir
         </button>
       </div>
 
@@ -97,7 +98,6 @@ export default function RelatoriosPage() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-          {/* Cartões de Indicadores */}
           <div style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -106,13 +106,13 @@ export default function RelatoriosPage() {
             <MetricCard
               titulo="Taxa de Alocação"
               valor={`${taxaAlocacao}%`}
-              descricao={`${calourosComGrupo} de ${stats?.totalCalouros} calouros apadrinhados`}
+              descricao={`${calourosComGrupo} de ${stats?.totalCalouros || 0} calouros apadrinhados`}
               cor="#d3fc72"
             />
             <MetricCard
               titulo="Grupos Ativos"
               valor={stats?.gruposAtivos || 0}
-              descricao={`${stats?.totalGrupos} grupos registrados`}
+              descricao={`${stats?.totalGrupos || 0} grupos registrados`}
               cor="#a78bfa"
             />
             <MetricCard
@@ -129,15 +129,14 @@ export default function RelatoriosPage() {
             />
           </div>
 
-          {/* Desempenho por Grupo */}
           <div style={{
             background: "rgba(255,255,255,0.03)",
             borderRadius: "16px",
             padding: "24px",
             border: "1px solid rgba(255,255,255,0.05)"
           }}>
-            <h3 style={{ color: "white", fontSize: "18px", fontWeight: "600", marginBottom: "16px" }}>
-              👥 Desempenho por Grupo de Mentoria
+            <h3 style={{ color: "white", fontSize: "18px", fontWeight: "600", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Users size={20} color="#d3fc72" /> Desempenho por Grupo de Mentoria
             </h3>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "14px" }}>
@@ -150,28 +149,36 @@ export default function RelatoriosPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {grupos.map((g) => (
-                    <tr key={g.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)", color: "white" }}>
-                      <td style={{ padding: "14px 16px", fontWeight: "600" }}>{g.nome}</td>
-                      <td style={{ padding: "14px 16px", color: "rgba(255,255,255,0.8)" }}>
-                        {g.mentor_nome || "Não atribuído"}
-                      </td>
-                      <td style={{ padding: "14px 16px" }}>
-                        <span style={{ color: "#d3fc72", fontWeight: "600" }}>{g.calouros?.length || 0}</span> calouros
-                      </td>
-                      <td style={{ padding: "14px 16px" }}>
-                        <span style={{
-                          padding: "2px 8px",
-                          borderRadius: "10px",
-                          fontSize: "11px",
-                          background: g.status === "ATIVO" ? "rgba(211,252,114,0.15)" : "rgba(255,165,0,0.15)",
-                          color: g.status === "ATIVO" ? "#d3fc72" : "#ffa500"
-                        }}>
-                          {g.status}
-                        </span>
+                  {grupos.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} style={{ padding: "24px", textAlign: "center", color: "rgba(255,255,255,0.4)" }}>
+                        Nenhum grupo cadastrado.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    grupos.map((g) => (
+                      <tr key={g.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)", color: "white" }}>
+                        <td style={{ padding: "14px 16px", fontWeight: "600" }}>{g.nome}</td>
+                        <td style={{ padding: "14px 16px", color: "rgba(255,255,255,0.8)" }}>
+                          {g.mentor_nome || "Não atribuído"}
+                        </td>
+                        <td style={{ padding: "14px 16px" }}>
+                          <span style={{ color: "#d3fc72", fontWeight: "600" }}>{g.calouros?.length || 0}</span> calouros
+                        </td>
+                        <td style={{ padding: "14px 16px" }}>
+                          <span style={{
+                            padding: "2px 8px",
+                            borderRadius: "10px",
+                            fontSize: "11px",
+                            background: g.status === "ATIVO" ? "rgba(211,252,114,0.15)" : "rgba(255,165,0,0.15)",
+                            color: g.status === "ATIVO" ? "#d3fc72" : "#ffa500"
+                          }}>
+                            {g.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -196,4 +203,3 @@ function MetricCard({ titulo, valor, descricao, cor }: any) {
     </div>
   )
 }
-

@@ -3,6 +3,18 @@
 import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
+import { 
+  GraduationCap, 
+  LayoutDashboard, 
+  UserCheck, 
+  Users, 
+  Calendar, 
+  BookOpen, 
+  BarChart3, 
+  Settings, 
+  LogOut,
+  User as UserIcon
+} from "lucide-react"
 
 type UserRole = "ORIENTADOR" | "MENTOR" | "CALOURO"
 
@@ -35,7 +47,6 @@ export default function DashboardLayout({
           router.push("/")
         }
       } catch (err) {
-        console.error("Erro ao carregar usuário:", err)
         router.push("/")
       } finally {
         setIsLoading(false)
@@ -61,8 +72,8 @@ export default function DashboardLayout({
         background: "black"
       }}>
         <div style={{
-          width: "40px",
-          height: "40px",
+          width: "36px",
+          height: "36px",
           border: "3px solid rgba(255,255,255,0.1)",
           borderTop: "3px solid #d3fc72",
           borderRadius: "50%",
@@ -85,7 +96,6 @@ export default function DashboardLayout({
       background: "black",
       display: "flex",
     }}>
-      {/* Sidebar */}
       <aside style={{
         width: "280px",
         background: "rgba(255,255,255,0.02)",
@@ -93,48 +103,46 @@ export default function DashboardLayout({
         padding: "24px",
         display: "flex",
         flexDirection: "column",
-        gap: "28px",
+        gap: "24px",
         position: "fixed",
         height: "100vh",
         overflowY: "auto",
         zIndex: 50
       }}>
-        {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div style={{
-            width: "42px",
-            height: "42px",
-            borderRadius: "12px",
+            width: "40px",
+            height: "40px",
+            borderRadius: "10px",
             background: "linear-gradient(135deg, #d3fc72, #5531cc)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "20px"
+            color: "black"
           }}>
-            🎓
+            <GraduationCap size={22} />
           </div>
           <div>
-            <h2 style={{ fontSize: "20px", fontWeight: "bold", lineHeight: "1.2" }}>
-              <span style={{ color: "#d3fc72" }}>Padawan</span>
+            <h2 style={{ fontSize: "19px", fontWeight: "bold", lineHeight: "1.2" }}>
+              <span style={{ color: "#d3fc72" }}>SGA</span>
               <span style={{ color: "white" }}> ON</span>
             </h2>
             <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
-              UNICAP • Ciência da Comp.
+              UNICAP • Ciência da Computação
             </span>
           </div>
         </div>
 
-        {/* Perfil do Usuário */}
         <div style={{
-          padding: "16px",
+          padding: "14px",
           borderRadius: "12px",
           background: "rgba(255,255,255,0.03)",
           border: "1px solid rgba(255,255,255,0.05)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div style={{
-              width: "44px",
-              height: "44px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
               background: user.role === "ORIENTADOR" 
                 ? "linear-gradient(135deg, #d3fc72, #a8e04a)" 
@@ -144,7 +152,7 @@ export default function DashboardLayout({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "18px",
+              fontSize: "16px",
               fontWeight: "bold",
               color: user.role === "ORIENTADOR" ? "black" : "white"
             }}>
@@ -154,7 +162,7 @@ export default function DashboardLayout({
               <p style={{ 
                 color: "white", 
                 fontWeight: "600", 
-                fontSize: "14px", 
+                fontSize: "13px", 
                 whiteSpace: "nowrap", 
                 overflow: "hidden", 
                 textOverflow: "ellipsis" 
@@ -163,10 +171,10 @@ export default function DashboardLayout({
               </p>
               <p style={{ 
                 color: "rgba(255,255,255,0.5)", 
-                fontSize: "12px",
+                fontSize: "11px",
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
+                gap: "5px",
                 marginTop: "2px"
               }}>
                 <span style={{
@@ -183,71 +191,63 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        {/* Menu de Navegação */}
         <nav style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}>
           {user.role === "ORIENTADOR" && (
             <>
-              <DashboardNavItem href="/dashboard" icon="📊" label="Visão Geral" />
-              <DashboardNavItem href="/dashboard/mentores" icon="🧑‍🎓" label="Mentores" />
-              <DashboardNavItem href="/dashboard/calouros" icon="👶" label="Calouros" />
-              <DashboardNavItem href="/dashboard/grupos" icon="👥" label="Grupos" />
-              <DashboardNavItem href="/dashboard/encontros" icon="📅" label="Encontros" />
-              <DashboardNavItem href="/dashboard/recursos" icon="📚" label="Recursos" />
-              <DashboardNavItem href="/dashboard/relatorios" icon="📈" label="Relatórios" />
-              <DashboardNavItem href="/dashboard/configuracoes" icon="⚙️" label="Configurações" />
+              <DashboardNavItem href="/dashboard" icon={<LayoutDashboard size={18} />} label="Visão Geral" />
+              <DashboardNavItem href="/dashboard/mentores" icon={<UserCheck size={18} />} label="Mentores" />
+              <DashboardNavItem href="/dashboard/calouros" icon={<Users size={18} />} label="Calouros" />
+              <DashboardNavItem href="/dashboard/grupos" icon={<Users size={18} />} label="Grupos" />
+              <DashboardNavItem href="/dashboard/encontros" icon={<Calendar size={18} />} label="Encontros" />
+              <DashboardNavItem href="/dashboard/recursos" icon={<BookOpen size={18} />} label="Recursos" />
+              <DashboardNavItem href="/dashboard/relatorios" icon={<BarChart3 size={18} />} label="Relatórios" />
+              <DashboardNavItem href="/dashboard/configuracoes" icon={<Settings size={18} />} label="Configurações" />
             </>
           )}
 
           {user.role === "MENTOR" && (
             <>
-              <DashboardNavItem href="/dashboard/mentor" icon="📊" label="Meu Painel" />
-              <DashboardNavItem href="/dashboard/meus-calouros" icon="👶" label="Meus Calouros" />
-              <DashboardNavItem href="/dashboard/encontros" icon="📅" label="Encontros" />
-              <DashboardNavItem href="/dashboard/recursos" icon="📚" label="Recursos" />
-              <DashboardNavItem href="/dashboard/relatorios" icon="📈" label="Relatórios" />
+              <DashboardNavItem href="/dashboard/mentor" icon={<LayoutDashboard size={18} />} label="Meu Painel" />
+              <DashboardNavItem href="/dashboard/meus-calouros" icon={<Users size={18} />} label="Meus Calouros" />
+              <DashboardNavItem href="/dashboard/encontros" icon={<Calendar size={18} />} label="Encontros" />
+              <DashboardNavItem href="/dashboard/recursos" icon={<BookOpen size={18} />} label="Recursos" />
+              <DashboardNavItem href="/dashboard/relatorios" icon={<BarChart3 size={18} />} label="Relatórios" />
             </>
           )}
 
           {user.role === "CALOURO" && (
             <>
-              <DashboardNavItem href="/dashboard/calouro" icon="📊" label="Meu Painel" />
-              <DashboardNavItem href="/dashboard/meu-mentor" icon="🧑‍🎓" label="Meu Mentor" />
-              <DashboardNavItem href="/dashboard/encontros" icon="📅" label="Meus Encontros" />
-              <DashboardNavItem href="/dashboard/recursos" icon="📚" label="Biblioteca" />
+              <DashboardNavItem href="/dashboard/calouro" icon={<LayoutDashboard size={18} />} label="Meu Painel" />
+              <DashboardNavItem href="/dashboard/meu-mentor" icon={<UserCheck size={18} />} label="Meu Mentor" />
+              <DashboardNavItem href="/dashboard/encontros" icon={<Calendar size={18} />} label="Meus Encontros" />
+              <DashboardNavItem href="/dashboard/recursos" icon={<BookOpen size={18} />} label="Biblioteca" />
             </>
           )}
         </nav>
 
-        {/* Botão Sair */}
         <button
           onClick={handleLogout}
           style={{
-            padding: "12px",
-            borderRadius: "12px",
+            padding: "10px 14px",
+            borderRadius: "10px",
             background: "rgba(255,0,0,0.1)",
             border: "1px solid rgba(255,0,0,0.2)",
             color: "#ff6b6b",
             cursor: "pointer",
-            fontSize: "14px",
+            fontSize: "13px",
             fontWeight: "500",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: "8px",
-            transition: "all 0.3s ease"
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(255,0,0,0.2)"
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(255,0,0,0.1)"
+            transition: "all 0.2s ease"
           }}
         >
-          🚪 Sair da Plataforma
+          <LogOut size={16} />
+          Sair da Plataforma
         </button>
       </aside>
 
-      {/* Conteúdo Principal */}
       <main style={{
         marginLeft: "280px",
         flex: 1,
@@ -267,7 +267,7 @@ export default function DashboardLayout({
   )
 }
 
-function DashboardNavItem({ href, icon, label }: { href: string, icon: string, label: string }) {
+function DashboardNavItem({ href, icon, label }: { href: string, icon: React.ReactNode, label: string }) {
   const pathname = usePathname()
   const isActive = pathname === href
 
@@ -275,33 +275,21 @@ function DashboardNavItem({ href, icon, label }: { href: string, icon: string, l
     <Link
       href={href}
       style={{
-        padding: "12px 16px",
-        borderRadius: "12px",
+        padding: "10px 14px",
+        borderRadius: "10px",
         display: "flex",
         alignItems: "center",
-        gap: "12px",
+        gap: "10px",
         color: isActive ? "white" : "rgba(255,255,255,0.6)",
         background: isActive ? "rgba(211,252,114,0.12)" : "transparent",
         border: isActive ? "1px solid rgba(211,252,114,0.25)" : "1px solid transparent",
         textDecoration: "none",
-        fontSize: "14px",
+        fontSize: "13px",
         fontWeight: isActive ? "600" : "400",
         transition: "all 0.2s ease"
       }}
-      onMouseEnter={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.background = "rgba(255,255,255,0.04)"
-          e.currentTarget.style.color = "white"
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.background = "transparent"
-          e.currentTarget.style.color = "rgba(255,255,255,0.6)"
-        }
-      }}
     >
-      <span style={{ fontSize: "18px" }}>{icon}</span>
+      <span style={{ display: "flex", alignItems: "center" }}>{icon}</span>
       <span>{label}</span>
       {isActive && (
         <span style={{

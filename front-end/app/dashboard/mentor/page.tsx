@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { UserCheck, Users, Clock, CheckCircle2, Calendar, MapPin, Mail, Plus, ArrowRight } from "lucide-react"
 
 interface MentorData {
   mentor: {
@@ -47,7 +48,7 @@ export default function MentorDashboard() {
         setData(json)
       }
     } catch (err) {
-      console.error("Erro ao carregar resumo do mentor:", err)
+      console.error(err)
     } finally {
       setIsLoading(false)
     }
@@ -71,7 +72,7 @@ export default function MentorDashboard() {
         })
       }
     } catch (err) {
-      console.error("Erro ao atualizar disponibilidade:", err)
+      console.error(err)
     }
   }
 
@@ -85,7 +86,6 @@ export default function MentorDashboard() {
 
   return (
     <div>
-      {/* Header */}
       <div style={{
         display: "flex",
         justifyContent: "space-between",
@@ -95,8 +95,8 @@ export default function MentorDashboard() {
         gap: "16px"
       }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-            🧑‍🎓 Olá, {data?.mentor?.nome || "Mentor"}!
+          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white", display: "flex", alignItems: "center", gap: "10px" }}>
+            <UserCheck size={28} color="#d3fc72" /> Olá, {data?.mentor?.nome || "Mentor"}!
           </h1>
           <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
             Painel de Acompanhamento de Apadrinhamento • {data?.mentor?.especialidades || "Ciência da Computação"}
@@ -117,7 +117,7 @@ export default function MentorDashboard() {
               fontSize: "13px"
             }}
           >
-            {data?.disponivel ? "🟢 Disponível para Novos Calouros" : "🔴 Ocupado / Indisponível"}
+            {data?.disponivel ? "Disponível para Novos Calouros" : "Ocupado / Indisponível"}
           </button>
           <button
             onClick={() => router.push("/dashboard/encontros")}
@@ -129,15 +129,17 @@ export default function MentorDashboard() {
               color: "black",
               fontWeight: "600",
               cursor: "pointer",
-              fontSize: "13px"
+              fontSize: "13px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px"
             }}
           >
-            + Agendar Encontro
+            <Plus size={16} /> Agendar Encontro
           </button>
         </div>
       </div>
 
-      {/* Cards de Métricas */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -151,7 +153,7 @@ export default function MentorDashboard() {
           border: "1px solid rgba(255,255,255,0.05)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-            <span style={{ fontSize: "22px" }}>👶</span>
+            <Users size={20} color="#d3fc72" />
             <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>Meus Calouros</p>
           </div>
           <p style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
@@ -169,7 +171,7 @@ export default function MentorDashboard() {
           border: "1px solid rgba(255,255,255,0.05)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-            <span style={{ fontSize: "22px" }}>⏳</span>
+            <Clock size={20} color="#a78bfa" />
             <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>Encontros Agendados</p>
           </div>
           <p style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
@@ -187,7 +189,7 @@ export default function MentorDashboard() {
           border: "1px solid rgba(255,255,255,0.05)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-            <span style={{ fontSize: "22px" }}>✅</span>
+            <CheckCircle2 size={20} color="#4ecdc4" />
             <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>Encontros Realizados</p>
           </div>
           <p style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
@@ -199,13 +201,11 @@ export default function MentorDashboard() {
         </div>
       </div>
 
-      {/* Conteúdo em duas colunas: Calouros e Próximos Encontros */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
         gap: "20px"
       }}>
-        {/* Calouros Atribuídos */}
         <div style={{
           background: "rgba(255,255,255,0.03)",
           borderRadius: "16px",
@@ -213,8 +213,8 @@ export default function MentorDashboard() {
           border: "1px solid rgba(255,255,255,0.05)"
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600" }}>
-              👶 Calouros Atribuídos
+            <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Users size={18} color="#d3fc72" /> Calouros Atribuídos
             </h3>
             <button
               onClick={() => router.push("/dashboard/meus-calouros")}
@@ -223,10 +223,13 @@ export default function MentorDashboard() {
                 border: "none",
                 color: "#d3fc72",
                 cursor: "pointer",
-                fontSize: "12px"
+                fontSize: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px"
               }}
             >
-              Ver detalhes →
+              Ver detalhes <ArrowRight size={14} />
             </button>
           </div>
 
@@ -248,11 +251,11 @@ export default function MentorDashboard() {
                 }}>
                   <div>
                     <p style={{ color: "white", fontWeight: "600", fontSize: "14px" }}>{c.nome}</p>
-                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>
-                      📧 {c.email} • RA: {c.ra}
+                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Mail size={12} /> {c.email} • RA: {c.ra}
                     </p>
-                    <span style={{ fontSize: "11px", color: "#a78bfa" }}>
-                      👥 {c.grupo_nome}
+                    <span style={{ fontSize: "11px", color: "#a78bfa", display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
+                      <Users size={12} /> {c.grupo_nome}
                     </span>
                   </div>
                 </div>
@@ -261,7 +264,6 @@ export default function MentorDashboard() {
           )}
         </div>
 
-        {/* Próximos Encontros */}
         <div style={{
           background: "rgba(255,255,255,0.03)",
           borderRadius: "16px",
@@ -269,8 +271,8 @@ export default function MentorDashboard() {
           border: "1px solid rgba(255,255,255,0.05)"
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600" }}>
-              📅 Próximos Encontros
+            <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Calendar size={18} color="#d3fc72" /> Próximos Encontros
             </h3>
             <button
               onClick={() => router.push("/dashboard/encontros")}
@@ -279,16 +281,19 @@ export default function MentorDashboard() {
                 border: "none",
                 color: "#d3fc72",
                 cursor: "pointer",
-                fontSize: "12px"
+                fontSize: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px"
               }}
             >
-              Gerenciar agenda →
+              Gerenciar agenda <ArrowRight size={14} />
             </button>
           </div>
 
           {!data?.proximosEncontros || data.proximosEncontros.length === 0 ? (
             <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "13px" }}>
-              Nenhum encontro agendado. Clique em "+ Agendar Encontro" para criar uma nova mentoria.
+              Nenhum encontro agendado. Clique em "Agendar Encontro" para criar uma nova mentoria.
             </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -300,8 +305,8 @@ export default function MentorDashboard() {
                   border: "1px solid rgba(255,255,255,0.04)"
                 }}>
                   <p style={{ color: "white", fontWeight: "600", fontSize: "14px" }}>{enc.titulo}</p>
-                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", marginTop: "2px" }}>
-                    📍 {enc.local} • {new Date(enc.data_hora).toLocaleString('pt-BR')}
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", marginTop: "2px", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <MapPin size={12} /> {enc.local} • {new Date(enc.data_hora).toLocaleString('pt-BR')}
                   </p>
                   {enc.tema && (
                     <span style={{

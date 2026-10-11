@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Users, Mail, IdCard, Send } from "lucide-react"
 
 interface Calouro {
   id: number
@@ -39,7 +40,7 @@ export default function MeusCalourosPage() {
         setMentor(data.mentor || null)
       }
     } catch (err) {
-      console.error("Erro ao carregar calouros do mentor:", err)
+      console.error(err)
     } finally {
       setIsLoading(false)
     }
@@ -48,11 +49,11 @@ export default function MeusCalourosPage() {
   return (
     <div>
       <div style={{ marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-          👶 Meus Calouros Apadrinhados
+        <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white", display: "flex", alignItems: "center", gap: "10px" }}>
+          <Users size={28} color="#d3fc72" /> Meus Calouros Apadrinhados
         </h1>
         <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
-          Estudantes vinculados sob sua mentoria no programa Padawan ON
+          Estudantes vinculados sob sua mentoria no programa 
         </p>
       </div>
 
@@ -128,9 +129,15 @@ export default function MeusCalourosPage() {
                 fontSize: "13px",
                 color: "rgba(255,255,255,0.6)"
               }}>
-                <p>📧 <span style={{ color: "white" }}>{calouro.email}</span></p>
-                <p>🆔 RA: <span style={{ color: "white" }}>{calouro.ra}</span></p>
-                <p>👥 Grupo: <span style={{ color: "#d3fc72" }}>{calouro.grupo_nome}</span></p>
+                <p style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Mail size={14} /> <span style={{ color: "white" }}>{calouro.email}</span>
+                </p>
+                <p style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <IdCard size={14} /> RA: <span style={{ color: "white" }}>{calouro.ra}</span>
+                </p>
+                <p style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Users size={14} /> Grupo: <span style={{ color: "#d3fc72" }}>{calouro.grupo_nome}</span>
+                </p>
               </div>
 
               <a
@@ -146,10 +153,13 @@ export default function MeusCalourosPage() {
                   textDecoration: "none",
                   fontSize: "13px",
                   fontWeight: "500",
-                  transition: "all 0.2s ease"
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px"
                 }}
               >
-                💬 Enviar E-mail
+                <Send size={14} /> Enviar E-mail
               </a>
             </div>
           ))}
@@ -158,4 +168,3 @@ export default function MeusCalourosPage() {
     </div>
   )
 }
-

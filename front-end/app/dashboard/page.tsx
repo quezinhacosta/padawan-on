@@ -2,6 +2,19 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { 
+  LayoutDashboard, 
+  UserCheck, 
+  Users, 
+  Calendar, 
+  BarChart3, 
+  RefreshCw, 
+  CheckCircle2, 
+  Clock, 
+  XCircle, 
+  Activity,
+  ArrowRight
+} from "lucide-react"
 
 interface DashboardStats {
   totalMentores: number
@@ -60,28 +73,24 @@ export default function DashboardHome() {
     if (token) headers["Authorization"] = `Bearer ${token}`
 
     try {
-      // 1. Stats
       const resStats = await fetch('/api/dashboard/stats', { headers })
       if (resStats.ok) {
         const dataStats = await resStats.json()
         setStats(dataStats)
       }
 
-      // 2. Encontros
       const resEncontros = await fetch('/api/encontros', { headers })
       if (resEncontros.ok) {
         const dataEncontros = await resEncontros.json()
         setEncontrosRecentes(dataEncontros.slice(0, 4))
       }
 
-      // 3. Atividades
       const resAtividades = await fetch('/api/dashboard/atividades', { headers })
       if (resAtividades.ok) {
         const dataAtividades = await resAtividades.json()
         setAtividadesRecentes(dataAtividades.slice(0, 4))
       }
     } catch (err) {
-      console.error("Erro ao carregar dados do dashboard:", err)
     } finally {
       setIsLoading(false)
     }
@@ -89,19 +98,20 @@ export default function DashboardHome() {
 
   return (
     <div>
-      {/* Header */}
       <div style={{
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: "32px"
+        marginBottom: "32px",
+        flexWrap: "wrap",
+        gap: "16px"
       }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-            📊 Visão Geral do Programa
+          <h1 style={{ fontSize: "26px", fontWeight: "bold", color: "white" }}>
+            Visão Geral do Programa
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
-            Acompanhe em tempo real as métricas e atividades do apadrinhamento UNICAP
+          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px", fontSize: "14px" }}>
+            Métricas em tempo real e monitoramento do programa de apadrinhamento UNICAP
           </p>
         </div>
         <button
@@ -116,14 +126,13 @@ export default function DashboardHome() {
             fontSize: "13px",
             display: "flex",
             alignItems: "center",
-            gap: "6px"
+            gap: "8px"
           }}
         >
-          🔄 Atualizar
+          <RefreshCw size={14} /> Atualizar
         </button>
       </div>
 
-      {/* Cards de Estatísticas */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -131,28 +140,28 @@ export default function DashboardHome() {
         marginBottom: "24px"
       }}>
         <StatCard
-          icon="👥"
+          icon={<UserCheck size={22} color="#5531cc" />}
           label="Mentores"
           value={stats.totalMentores}
           detail={`${stats.mentoresDisponiveis} disponíveis`}
           color="#5531cc"
         />
         <StatCard
-          icon="👶"
+          icon={<Users size={22} color="#d3fc72" />}
           label="Calouros"
           value={stats.totalCalouros}
-          detail={`${stats.calourosSemGrupo} aguardando grupo`}
+          detail={`${stats.calourosSemGrupo} sem grupo`}
           color="#d3fc72"
         />
         <StatCard
-          icon="🤝"
+          icon={<Users size={22} color="#a78bfa" />}
           label="Grupos Ativos"
           value={stats.gruposAtivos}
-          detail={`${stats.totalGrupos} total cadastrados`}
+          detail={`${stats.totalGrupos} cadastrados`}
           color="#a78bfa"
         />
         <StatCard
-          icon="📅"
+          icon={<Calendar size={22} color="#4ecdc4" />}
           label="Taxa de Frequência"
           value={`${stats.taxaSucesso}%`}
           detail={`${stats.encontrosHoje} encontros hoje`}
@@ -160,7 +169,6 @@ export default function DashboardHome() {
         />
       </div>
 
-      {/* Progresso e Status */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "2fr 1fr",
@@ -174,7 +182,7 @@ export default function DashboardHome() {
           border: "1px solid rgba(255,255,255,0.05)"
         }}>
           <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600", marginBottom: "16px" }}>
-            📈 Indicadores de Acolhimento
+            Indicadores de Acolhimento
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <ProgressBar 
@@ -188,8 +196,8 @@ export default function DashboardHome() {
               color="#5531cc" 
             />
             <ProgressBar 
-              label="Taxa de Execução de Encontros" 
-              value={stats.taxaSucesso || 85} 
+              label="Taxa de Assiduidade" 
+              value={stats.taxaSucesso || 100} 
               color="#4ecdc4" 
             />
           </div>
@@ -202,7 +210,7 @@ export default function DashboardHome() {
           border: "1px solid rgba(255,255,255,0.05)"
         }}>
           <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600", marginBottom: "16px" }}>
-            🎯 Metas do Semestre
+            Metas do Semestre
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
             <StatusItem label="Mentores Ativos" value={stats.mentoresDisponiveis} total={stats.totalMentores || 1} />
@@ -212,7 +220,6 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* Ações Rápidas */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -220,28 +227,28 @@ export default function DashboardHome() {
         marginBottom: "32px"
       }}>
         <QuickAction
-          icon="👤"
+          icon={<UserCheck size={24} color="#a78bfa" />}
           title="Gerenciar Mentores"
           description="Visualizar e adicionar mentores"
           onClick={() => router.push("/dashboard/mentores")}
           color="#5531cc"
         />
         <QuickAction
-          icon="👶"
+          icon={<Users size={24} color="#d3fc72" />}
           title="Gerenciar Calouros"
           description="Acompanhar alunos ingressantes"
           onClick={() => router.push("/dashboard/calouros")}
           color="#d3fc72"
         />
         <QuickAction
-          icon="👥"
+          icon={<LayoutDashboard size={24} color="#ff8787" />}
           title="Formar Grupos"
           description="Criar e gerenciar equipes"
           onClick={() => router.push("/dashboard/grupos")}
           color="#ff6b6b"
         />
         <QuickAction
-          icon="📅"
+          icon={<Calendar size={24} color="#4ecdc4" />}
           title="Agendar Encontro"
           description="Criar e gerenciar reuniões"
           onClick={() => router.push("/dashboard/encontros")}
@@ -249,13 +256,11 @@ export default function DashboardHome() {
         />
       </div>
 
-      {/* Encontros Recentes e Atividades */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
         gap: "16px"
       }}>
-        {/* Encontros Recentes */}
         <div style={{
           background: "rgba(255,255,255,0.03)",
           borderRadius: "16px",
@@ -269,7 +274,7 @@ export default function DashboardHome() {
             marginBottom: "16px"
           }}>
             <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600" }}>
-              📅 Próximos Encontros
+              Próximos Encontros
             </h3>
             <button 
               onClick={() => router.push("/dashboard/encontros")}
@@ -280,9 +285,12 @@ export default function DashboardHome() {
                 border: "1px solid rgba(255,255,255,0.1)",
                 color: "rgba(255,255,255,0.6)",
                 cursor: "pointer",
-                fontSize: "12px"
+                fontSize: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px"
               }}>
-              Ver todos
+              Ver todos <ArrowRight size={12} />
             </button>
           </div>
 
@@ -305,10 +313,10 @@ export default function DashboardHome() {
                       {encontro.titulo}
                     </p>
                     <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>
-                      👥 {encontro.grupo_nome} {encontro.mentor_nome ? `• Mentor: ${encontro.mentor_nome}` : ''}
+                      {encontro.grupo_nome} {encontro.mentor_nome ? `• Mentor: ${encontro.mentor_nome}` : ''}
                     </p>
                     <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>
-                      📍 {encontro.local} • {new Date(encontro.data_hora).toLocaleString('pt-BR')}
+                      {encontro.local} • {new Date(encontro.data_hora).toLocaleString('pt-BR')}
                     </p>
                   </div>
                   <span style={{
@@ -323,9 +331,9 @@ export default function DashboardHome() {
                            encontro.status === "AGENDADO" ? "#a78bfa" :
                            "#ff6b6b"
                   }}>
-                    {encontro.status === "REALIZADO" ? "✅ Realizado" :
-                     encontro.status === "AGENDADO" ? "⏳ Agendado" :
-                     "❌ Cancelado"}
+                    {encontro.status === "REALIZADO" ? "Realizado" :
+                     encontro.status === "AGENDADO" ? "Agendado" :
+                     "Cancelado"}
                   </span>
                 </div>
               ))
@@ -333,7 +341,6 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Atividades Recentes */}
         <div style={{
           background: "rgba(255,255,255,0.03)",
           borderRadius: "16px",
@@ -347,7 +354,7 @@ export default function DashboardHome() {
             marginBottom: "16px"
           }}>
             <h3 style={{ color: "white", fontSize: "16px", fontWeight: "600" }}>
-              🔄 Registro de Atividades
+              Registro de Atividades
             </h3>
             <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
               Histórico
@@ -368,14 +375,9 @@ export default function DashboardHome() {
                   borderRadius: "8px",
                   border: "1px solid rgba(255,255,255,0.03)"
                 }}>
-                  <span style={{ fontSize: "18px", marginTop: "2px" }}>
-                    {atividade.tipo.includes("MENTOR") && "🧑‍🎓"}
-                    {atividade.tipo.includes("CALOURO") && "👶"}
-                    {atividade.tipo.includes("GRUPO") && "👥"}
-                    {atividade.tipo.includes("ENCONTRO") && "📅"}
-                    {atividade.tipo.includes("LOGIN") && "🔑"}
-                    {atividade.tipo.includes("RECURSO") && "📚"}
-                  </span>
+                  <div style={{ marginTop: "2px", color: "#d3fc72" }}>
+                    <Activity size={16} />
+                  </div>
                   <div>
                     <p style={{ color: "white", fontSize: "13px", lineHeight: "1.4" }}>{atividade.descricao}</p>
                     <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", marginTop: "4px" }}>
@@ -400,8 +402,8 @@ function StatCard({ icon, label, value, detail, color }: any) {
       padding: "20px",
       border: "1px solid rgba(255,255,255,0.05)"
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
-        <span style={{ fontSize: "24px" }}>{icon}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+        {icon}
         <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px" }}>{label}</p>
       </div>
       <p style={{ fontSize: "32px", fontWeight: "bold", color: "white" }}>{value}</p>
@@ -422,18 +424,8 @@ function QuickAction({ icon, title, description, onClick, color }: any) {
         cursor: "pointer",
         transition: "all 0.2s ease",
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "rgba(255,255,255,0.06)"
-        e.currentTarget.style.transform = "translateY(-2px)"
-        e.currentTarget.style.boxShadow = `0 0 30px ${color}22`
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "rgba(255,255,255,0.03)"
-        e.currentTarget.style.transform = "translateY(0)"
-        e.currentTarget.style.boxShadow = "none"
-      }}
     >
-      <div style={{ fontSize: "28px", marginBottom: "8px" }}>{icon}</div>
+      <div style={{ marginBottom: "10px" }}>{icon}</div>
       <h3 style={{ color: "white", fontSize: "15px", fontWeight: "600", marginBottom: "4px" }}>
         {title}
       </h3>

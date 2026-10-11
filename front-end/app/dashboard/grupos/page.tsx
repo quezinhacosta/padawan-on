@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Users, Plus, Trash2, Calendar, UserCheck } from "lucide-react"
 
 interface CalouroMembro {
   calouro_id: number
@@ -67,28 +68,24 @@ export default function GruposPage() {
     try {
       const headers = getHeaders()
 
-      // Buscar Grupos
       const resGrupos = await fetch('/api/grupos', { headers })
       if (resGrupos.ok) {
         const data = await resGrupos.json()
         setGrupos(data)
       }
 
-      // Buscar Mentores
       const resMentores = await fetch('/api/mentores', { headers })
       if (resMentores.ok) {
         const data = await resMentores.json()
         setMentores(data)
       }
 
-      // Buscar Calouros
       const resCalouros = await fetch('/api/calouros', { headers })
       if (resCalouros.ok) {
         const data: CalouroOption[] = await resCalouros.json()
         setCalourosDisponiveis(data)
       }
     } catch (err) {
-      console.error("Erro ao carregar dados dos grupos:", err)
     } finally {
       setIsLoading(false)
     }
@@ -137,7 +134,6 @@ export default function GruposPage() {
         return
       }
 
-      // Limpar formulário e recarregar
       setFormData({
         nome: "",
         mentorId: "",
@@ -147,7 +143,6 @@ export default function GruposPage() {
       setShowModal(false)
       carregarDados()
     } catch (err) {
-      console.error("Erro ao salvar grupo:", err)
       setErro("Erro de conexão ao salvar grupo.")
     } finally {
       setIsSubmitting(false)
@@ -155,7 +150,7 @@ export default function GruposPage() {
   }
 
   const handleExcluirGrupo = async (id: number, nome: string) => {
-    if (!confirm(`Deseja realmente remover o grupo "${nome}"?`)) return
+    if (!confirm(`Deseja realmente remover o grupo "${nome}"? Esta ação não pode ser desfeita.`)) return
 
     try {
       const res = await fetch(`/api/grupos/${id}`, {
@@ -166,7 +161,6 @@ export default function GruposPage() {
         setGrupos(grupos.filter(g => g.id !== id))
       }
     } catch (err) {
-      console.error("Erro ao excluir grupo:", err)
     }
   }
 
@@ -176,13 +170,15 @@ export default function GruposPage() {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: "32px"
+        marginBottom: "32px",
+        flexWrap: "wrap",
+        gap: "16px"
       }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-            👥 Gerenciar Grupos de Mentoria
+          <h1 style={{ fontSize: "26px", fontWeight: "bold", color: "white" }}>
+            Gerenciar Grupos de Mentoria
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
+          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px", fontSize: "14px" }}>
             Crie novos grupos, vincule mentores e aloque os calouros do programa
           </p>
         </div>
@@ -192,18 +188,20 @@ export default function GruposPage() {
             setShowModal(true)
           }}
           style={{
-            padding: "10px 24px",
-            borderRadius: "12px",
+            padding: "10px 20px",
+            borderRadius: "10px",
             background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
             color: "black",
             fontWeight: "600",
             border: "none",
             cursor: "pointer",
-            fontSize: "14px",
-            boxShadow: "0 0 25px rgba(211,252,114,0.2)"
+            fontSize: "13px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
           }}
         >
-          + Formar Novo Grupo
+          <Plus size={16} /> Formar Novo Grupo
         </button>
       </div>
 
@@ -214,18 +212,17 @@ export default function GruposPage() {
       ) : grupos.length === 0 ? (
         <div style={{
           textAlign: "center",
-          padding: "60px",
+          padding: "50px",
           background: "rgba(255,255,255,0.02)",
-          borderRadius: "16px",
+          borderRadius: "14px",
           border: "1px dashed rgba(255,255,255,0.1)"
         }}>
-          <p style={{ fontSize: "20px", color: "white", marginBottom: "8px" }}>Nenhum grupo cadastrado</p>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "20px" }}>
+          <p style={{ fontSize: "16px", color: "white", marginBottom: "6px" }}>Nenhum grupo cadastrado</p>
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>
             Crie o primeiro grupo clicando no botão acima.
           </p>
         </div>
       ) : (
-        /* Grid de Grupos */
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
@@ -235,12 +232,11 @@ export default function GruposPage() {
             <div key={grupo.id} style={{
               background: "rgba(255,255,255,0.03)",
               borderRadius: "16px",
-              padding: "24px",
+              padding: "22px",
               border: "1px solid rgba(255,255,255,0.05)",
               display: "flex",
               flexDirection: "column",
-              gap: "16px",
-              transition: "all 0.2s ease"
+              gap: "16px"
             }}>
               <div style={{
                 display: "flex",
@@ -248,11 +244,11 @@ export default function GruposPage() {
                 alignItems: "flex-start"
               }}>
                 <div>
-                  <h3 style={{ color: "white", fontSize: "18px", fontWeight: "600" }}>
+                  <h3 style={{ color: "white", fontSize: "17px", fontWeight: "600" }}>
                     {grupo.nome}
                   </h3>
                   <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", marginTop: "4px" }}>
-                    👨‍🏫 Mentor: <span style={{ color: "#d3fc72" }}>{grupo.mentor_nome || "Não atribuído"}</span>
+                    Mentor: <span style={{ color: "#d3fc72" }}>{grupo.mentor_nome || "Não atribuído"}</span>
                   </p>
                   {grupo.descricao && (
                     <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", marginTop: "4px" }}>
@@ -265,60 +261,51 @@ export default function GruposPage() {
                   borderRadius: "12px",
                   fontSize: "11px",
                   fontWeight: "500",
-                  background: grupo.status === "ATIVO" ? "rgba(211,252,114,0.15)" :
-                            grupo.status === "PENDENTE" ? "rgba(255,165,0,0.15)" :
-                            "rgba(255,107,107,0.15)",
-                  color: grupo.status === "ATIVO" ? "#d3fc72" :
-                         grupo.status === "PENDENTE" ? "#ffa500" :
-                         "#ff6b6b"
+                  background: grupo.status === "ATIVO" ? "rgba(211,252,114,0.15)" : "rgba(255,165,0,0.15)",
+                  color: grupo.status === "ATIVO" ? "#d3fc72" : "#ffa500"
                 }}>
-                  {grupo.status === "ATIVO" ? "✅ Ativo" :
-                   grupo.status === "PENDENTE" ? "⏳ Pendente" :
-                   "❌ Finalizado"}
+                  {grupo.status}
                 </span>
               </div>
 
-              {/* Membros Calouros */}
               <div>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px", marginBottom: "8px" }}>
+                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", marginBottom: "8px" }}>
                   Calouros Vinculados ({grupo.calouros.length}):
                 </p>
                 {grupo.calouros.length === 0 ? (
-                  <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "12px", fontStyle: "italic" }}>
+                  <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "12px" }}>
                     Nenhum calouro adicionado ainda.
                   </p>
                 ) : (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                     {grupo.calouros.map((calouro) => (
                       <span key={calouro.calouro_id} style={{
-                        padding: "4px 10px",
-                        borderRadius: "10px",
+                        padding: "3px 8px",
+                        borderRadius: "8px",
                         background: "rgba(255,255,255,0.06)",
-                        fontSize: "12px",
-                        color: "rgba(255,255,255,0.8)",
-                        border: "1px solid rgba(255,255,255,0.05)"
+                        fontSize: "11px",
+                        color: "rgba(255,255,255,0.8)"
                       }}>
-                        👶 {calouro.nome}
+                        {calouro.nome}
                       </span>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Próximo Encontro e Ações */}
               <div style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                paddingTop: "16px",
+                paddingTop: "14px",
                 borderTop: "1px solid rgba(255,255,255,0.05)",
                 marginTop: "auto"
               }}>
                 <div>
                   <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>
-                    📅 Próximo encontro
+                    Próximo encontro
                   </p>
-                  <p style={{ color: "white", fontSize: "13px", fontWeight: "500" }}>
+                  <p style={{ color: "white", fontSize: "12px", fontWeight: "500" }}>
                     {grupo.proximo_encontro 
                       ? new Date(grupo.proximo_encontro).toLocaleString('pt-BR') 
                       : "Nenhum agendado"}
@@ -333,10 +320,14 @@ export default function GruposPage() {
                     border: "1px solid rgba(255,0,0,0.2)",
                     color: "#ff6b6b",
                     cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                     fontSize: "12px"
                   }}
+                  title="Excluir Grupo"
                 >
-                  Excluir
+                  <Trash2 size={13} /> Excluir
                 </button>
               </div>
             </div>
@@ -344,7 +335,6 @@ export default function GruposPage() {
         </div>
       )}
 
-      {/* Modal de Criação de Grupo */}
       {showModal && (
         <div style={{
           position: "fixed",
@@ -359,18 +349,18 @@ export default function GruposPage() {
         }}>
           <div style={{
             background: "#121212",
-            borderRadius: "20px",
-            padding: "32px",
-            maxWidth: "520px",
+            borderRadius: "18px",
+            padding: "28px",
+            maxWidth: "500px",
             width: "100%",
             border: "1px solid rgba(255,255,255,0.1)",
             maxHeight: "90vh",
             overflowY: "auto"
           }}>
-            <h2 style={{ color: "white", fontSize: "22px", fontWeight: "bold", marginBottom: "6px" }}>
+            <h2 style={{ color: "white", fontSize: "20px", fontWeight: "bold", marginBottom: "4px" }}>
               Formar Novo Grupo
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "20px" }}>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px", marginBottom: "18px" }}>
               Atribua um mentor e selecione os calouros participantes.
             </p>
 
@@ -382,28 +372,28 @@ export default function GruposPage() {
                 border: "1px solid rgba(255,0,0,0.2)",
                 color: "#ff6b6b",
                 fontSize: "13px",
-                marginBottom: "16px"
+                marginBottom: "14px"
               }}>
                 {erro}
               </div>
             )}
 
-            <form onSubmit={handleCriarGrupo} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <form onSubmit={handleCriarGrupo} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "6px" }}>
-                  Nome do Grupo *
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                  Nome do Grupo
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Grupo Ada Lovelace"
+                  placeholder="Nome do grupo de mentoria"
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.nome}
@@ -413,18 +403,18 @@ export default function GruposPage() {
               </div>
 
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "6px" }}>
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
                   Mentor Responsável
                 </label>
                 <select
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "#1a1a1a",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.mentorId}
@@ -433,27 +423,27 @@ export default function GruposPage() {
                   <option value="">Selecione um mentor...</option>
                   {mentores.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.nome} {m.disponivel ? "🟢 (Disponível)" : "🔴 (Ocupado)"}
+                      {m.nome} {m.disponivel ? "(Disponível)" : "(Ocupado)"}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "6px" }}>
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
                   Descrição / Objetivo do Grupo
                 </label>
                 <textarea
-                  placeholder="Ex: Foco em nivelamento de programação e integração acadêmica..."
+                  placeholder="Objetivos do grupo"
                   rows={2}
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none",
                     resize: "none"
                   }}
@@ -462,13 +452,12 @@ export default function GruposPage() {
                 />
               </div>
 
-              {/* Seleção de Calouros */}
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "6px" }}>
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
                   Calouros para Inserir no Grupo:
                 </label>
                 <div style={{
-                  maxHeight: "150px",
+                  maxHeight: "140px",
                   overflowY: "auto",
                   padding: "8px",
                   background: "rgba(255,255,255,0.02)",
@@ -478,46 +467,46 @@ export default function GruposPage() {
                   flexDirection: "column",
                   gap: "6px"
                 }}>
-                  {calourosDisponiveis.map((calouro) => (
-                    <label key={calouro.id} style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      fontSize: "13px",
-                      color: "white",
-                      cursor: "pointer",
-                      padding: "4px"
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={formData.calouroIds.includes(calouro.id)}
-                        onChange={() => handleToggleCalouro(calouro.id)}
-                        style={{ accentColor: "#d3fc72" }}
-                      />
-                      <span>{calouro.nome} (RA: {calouro.ra})</span>
-                      {calouro.grupo_id && (
-                        <span style={{ fontSize: "11px", color: "#ffa500", marginLeft: "auto" }}>
-                          (já em outro grupo)
-                        </span>
-                      )}
-                    </label>
-                  ))}
+                  {calourosDisponiveis.length === 0 ? (
+                    <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)" }}>
+                      Nenhum calouro cadastrado no sistema.
+                    </span>
+                  ) : (
+                    calourosDisponiveis.map((calouro) => (
+                      <label key={calouro.id} style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        fontSize: "12px",
+                        color: "white",
+                        cursor: "pointer",
+                        padding: "3px"
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={formData.calouroIds.includes(calouro.id)}
+                          onChange={() => handleToggleCalouro(calouro.id)}
+                          style={{ accentColor: "#d3fc72" }}
+                        />
+                        <span>{calouro.nome} (RA: {calouro.ra})</span>
+                      </label>
+                    ))
+                  )}
                 </div>
               </div>
 
-              {/* Botões do Modal */}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
                   style={{
-                    padding: "10px 18px",
+                    padding: "8px 14px",
                     borderRadius: "8px",
                     background: "transparent",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
                     cursor: "pointer",
-                    fontSize: "14px"
+                    fontSize: "13px"
                   }}
                   disabled={isSubmitting}
                 >
@@ -526,14 +515,14 @@ export default function GruposPage() {
                 <button
                   type="submit"
                   style={{
-                    padding: "10px 22px",
+                    padding: "8px 18px",
                     borderRadius: "8px",
                     background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
                     border: "none",
                     color: "black",
                     fontWeight: "600",
                     cursor: "pointer",
-                    fontSize: "14px"
+                    fontSize: "13px"
                   }}
                   disabled={isSubmitting}
                 >

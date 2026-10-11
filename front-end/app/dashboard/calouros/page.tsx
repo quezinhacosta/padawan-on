@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Users, Plus, Search, Trash2, Mail, GraduationCap } from "lucide-react"
 
 interface Calouro {
   id: number
@@ -57,9 +58,23 @@ export default function CalourosAdminPage() {
         setCalouros(data)
       }
     } catch (err) {
-      console.error("Erro ao carregar calouros:", err)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleExcluirCalouro = async (id: number, nome: string) => {
+    if (!confirm(`Deseja realmente remover o calouro "${nome}"? Esta ação removerá seus vínculos.`)) return
+
+    try {
+      const res = await fetch(`/api/calouros/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      })
+      if (res.ok) {
+        setCalouros(calouros.filter(c => c.id !== id))
+      }
+    } catch (err) {
     }
   }
 
@@ -121,13 +136,15 @@ export default function CalourosAdminPage() {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: "32px"
+        marginBottom: "32px",
+        flexWrap: "wrap",
+        gap: "16px"
       }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-            👶 Gerenciamento de Calouros
+          <h1 style={{ fontSize: "26px", fontWeight: "bold", color: "white" }}>
+            Gerenciamento de Calouros
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
+          <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px", fontSize: "14px" }}>
             Acompanhe o ingresso dos alunos, verifique vínculos de mentoria e aloque calouros
           </p>
         </div>
@@ -137,45 +154,54 @@ export default function CalourosAdminPage() {
             setShowModal(true)
           }}
           style={{
-            padding: "10px 24px",
-            borderRadius: "12px",
+            padding: "10px 20px",
+            borderRadius: "10px",
             background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
             color: "black",
             fontWeight: "600",
             border: "none",
             cursor: "pointer",
-            fontSize: "14px",
-            boxShadow: "0 0 25px rgba(211,252,114,0.2)"
+            fontSize: "13px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
           }}
         >
-          + Adicionar Calouro
+          <Plus size={16} /> Adicionar Calouro
         </button>
       </div>
 
-      {/* Filtros */}
       <div style={{
         display: "flex",
         gap: "12px",
         marginBottom: "24px",
         flexWrap: "wrap"
       }}>
-        <input
-          type="text"
-          placeholder="Buscar calouro por nome, RA ou grupo..."
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          style={{
-            padding: "10px 16px",
-            borderRadius: "8px",
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            color: "white",
-            fontSize: "14px",
-            flex: 1,
-            minWidth: "240px",
-            outline: "none"
-          }}
-        />
+        <div style={{
+          flex: 1,
+          minWidth: "240px",
+          position: "relative",
+          display: "flex",
+          alignItems: "center"
+        }}>
+          <Search size={16} style={{ position: "absolute", left: "14px", color: "rgba(255,255,255,0.4)" }} />
+          <input
+            type="text"
+            placeholder="Buscar calouro por nome, RA ou grupo..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 14px 10px 38px",
+              borderRadius: "8px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "white",
+              fontSize: "14px",
+              outline: "none"
+            }}
+          />
+        </div>
         <select
           value={filtroGrupo}
           onChange={(e) => setFiltroGrupo(e.target.value)}
@@ -195,7 +221,6 @@ export default function CalourosAdminPage() {
         </select>
       </div>
 
-      {/* Lista de Calouros */}
       {isLoading ? (
         <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.4)" }}>
           Carregando calouros...
@@ -209,7 +234,7 @@ export default function CalourosAdminPage() {
           border: "1px dashed rgba(255,255,255,0.1)",
           color: "rgba(255,255,255,0.4)"
         }}>
-          Nenhum calouro encontrado com os filtros aplicados.
+          Nenhum calouro cadastrado no momento.
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -217,7 +242,7 @@ export default function CalourosAdminPage() {
             <div key={calouro.id} style={{
               background: "rgba(255,255,255,0.03)",
               borderRadius: "12px",
-              padding: "20px",
+              padding: "18px 22px",
               border: "1px solid rgba(255,255,255,0.05)",
               display: "flex",
               justifyContent: "space-between",
@@ -227,8 +252,8 @@ export default function CalourosAdminPage() {
             }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
-                  <span style={{ fontSize: "20px" }}>👶</span>
-                  <h3 style={{ color: "white", fontWeight: "600", fontSize: "16px" }}>{calouro.nome}</h3>
+                  <Users size={18} color="#d3fc72" />
+                  <h3 style={{ color: "white", fontWeight: "600", fontSize: "15px" }}>{calouro.nome}</h3>
                   <span style={{
                     padding: "2px 10px",
                     borderRadius: "12px",
@@ -237,24 +262,44 @@ export default function CalourosAdminPage() {
                     background: calouro.grupo_id ? "rgba(211,252,114,0.15)" : "rgba(255,107,107,0.15)",
                     color: calouro.grupo_id ? "#d3fc72" : "#ff6b6b"
                   }}>
-                    {calouro.grupo_id ? `Grupo: ${calouro.grupo_nome}` : "⚠️ Sem Grupo"}
+                    {calouro.grupo_id ? `Grupo: ${calouro.grupo_nome}` : "Sem Grupo"}
                   </span>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>
-                  <span>📧 {calouro.email}</span>
-                  <span>🆔 RA: {calouro.ra}</span>
-                  <span>🎓 {calouro.curso} ({calouro.periodo})</span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", color: "rgba(255,255,255,0.5)", fontSize: "12px" }}>
+                  <span>E-mail: {calouro.email}</span>
+                  <span>RA: {calouro.ra}</span>
+                  <span>Curso: {calouro.curso} ({calouro.periodo})</span>
                   {calouro.mentor_nome && (
-                    <span style={{ color: "#a78bfa" }}>🧑‍🎓 Mentor: {calouro.mentor_nome}</span>
+                    <span style={{ color: "#a78bfa" }}>Mentor: {calouro.mentor_nome}</span>
                   )}
                 </div>
+              </div>
+
+              <div>
+                <button
+                  onClick={() => handleExcluirCalouro(calouro.id, calouro.nome)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    background: "rgba(255,0,0,0.1)",
+                    border: "1px solid rgba(255,0,0,0.2)",
+                    color: "#ff6b6b",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "12px"
+                  }}
+                  title="Excluir Calouro"
+                >
+                  <Trash2 size={14} /> Excluir
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Modal Adicionar Calouro */}
       {showModal && (
         <div style={{
           position: "fixed",
@@ -269,17 +314,17 @@ export default function CalourosAdminPage() {
         }}>
           <div style={{
             background: "#121212",
-            borderRadius: "20px",
-            padding: "32px",
+            borderRadius: "18px",
+            padding: "28px",
             maxWidth: "480px",
             width: "100%",
             border: "1px solid rgba(255,255,255,0.1)"
           }}>
-            <h2 style={{ color: "white", fontSize: "22px", fontWeight: "bold", marginBottom: "6px" }}>
+            <h2 style={{ color: "white", fontSize: "20px", fontWeight: "bold", marginBottom: "4px" }}>
               Cadastrar Novo Calouro
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "20px" }}>
-              Registre um calouro no sistema para que ele possa ser alocado a um mentor.
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px", marginBottom: "18px" }}>
+              Registre um ingressante no sistema para vinculação a mentores.
             </p>
 
             {erro && (
@@ -290,28 +335,28 @@ export default function CalourosAdminPage() {
                 border: "1px solid rgba(255,0,0,0.2)",
                 color: "#ff6b6b",
                 fontSize: "13px",
-                marginBottom: "16px"
+                marginBottom: "14px"
               }}>
                 {erro}
               </div>
             )}
 
-            <form onSubmit={handleCadastrarCalouro} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <form onSubmit={handleCadastrarCalouro} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                  Nome Completo *
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                  Nome Completo
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Beatriz Lima"
+                  placeholder="Nome do calouro"
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.nomeCompleto}
@@ -321,20 +366,20 @@ export default function CalourosAdminPage() {
               </div>
 
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                  RA / Matrícula *
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                  RA / Matrícula
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: 2026010"
+                  placeholder="Matrícula institucional"
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.ra}
@@ -344,20 +389,20 @@ export default function CalourosAdminPage() {
               </div>
 
               <div>
-                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
-                  E-mail Institucional (Opcional)
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                  E-mail Institucional
                 </label>
                 <input
                   type="email"
-                  placeholder="beatriz@unicap.br"
+                  placeholder="aluno@unicap.br"
                   style={{
                     width: "100%",
-                    padding: "10px 14px",
+                    padding: "10px 12px",
                     borderRadius: "8px",
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: "white",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none"
                   }}
                   value={formData.email}
@@ -367,19 +412,19 @@ export default function CalourosAdminPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
+                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
                     Curso
                   </label>
                   <input
                     type="text"
                     style={{
                       width: "100%",
-                      padding: "10px 14px",
+                      padding: "10px 12px",
                       borderRadius: "8px",
                       background: "rgba(255,255,255,0.05)",
                       border: "1px solid rgba(255,255,255,0.1)",
                       color: "white",
-                      fontSize: "14px",
+                      fontSize: "13px",
                       outline: "none"
                     }}
                     value={formData.curso}
@@ -387,19 +432,19 @@ export default function CalourosAdminPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "4px" }}>
+                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
                     Período
                   </label>
                   <input
                     type="text"
                     style={{
                       width: "100%",
-                      padding: "10px 14px",
+                      padding: "10px 12px",
                       borderRadius: "8px",
                       background: "rgba(255,255,255,0.05)",
                       border: "1px solid rgba(255,255,255,0.1)",
                       color: "white",
-                      fontSize: "14px",
+                      fontSize: "13px",
                       outline: "none"
                     }}
                     value={formData.periodo}
@@ -408,12 +453,12 @@ export default function CalourosAdminPage() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
                   style={{
-                    padding: "10px 16px",
+                    padding: "8px 14px",
                     borderRadius: "8px",
                     background: "transparent",
                     border: "1px solid rgba(255,255,255,0.1)",
@@ -428,7 +473,7 @@ export default function CalourosAdminPage() {
                   type="submit"
                   disabled={isSubmitting}
                   style={{
-                    padding: "10px 20px",
+                    padding: "8px 18px",
                     borderRadius: "8px",
                     background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
                     border: "none",
@@ -448,4 +493,3 @@ export default function CalourosAdminPage() {
     </div>
   )
 }
-

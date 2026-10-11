@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { BookOpen, Plus, Search, Trash2, ExternalLink, FileText, Video, PenTool, Link as LinkIcon } from "lucide-react"
 
 interface Recurso {
   id: number
@@ -48,9 +49,27 @@ export default function RecursosPage() {
         setRecursos(data)
       }
     } catch (err) {
-      console.error("Erro ao carregar recursos:", err)
+      console.error(err)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleExcluirRecurso = async (id: number) => {
+    if (!confirm("Tem certeza que deseja excluir este recurso?")) return
+    try {
+      const res = await fetch(`/api/recursos/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      })
+      if (res.ok) {
+        carregarRecursos()
+      } else {
+        const data = await res.json()
+        alert(data.error || "Erro ao excluir recurso")
+      }
+    } catch (err) {
+      alert("Erro ao excluir recurso")
     }
   }
 
@@ -100,6 +119,21 @@ export default function RecursosPage() {
     return matchesBusca && matchesTipo
   })
 
+  const getTipoIcon = (tipo: string) => {
+    switch (tipo) {
+      case "VIDEO":
+        return <Video size={28} color="#d3fc72" />
+      case "DOCUMENTO":
+        return <FileText size={28} color="#60a5fa" />
+      case "LINK":
+        return <LinkIcon size={28} color="#a78bfa" />
+      case "EXERCICIO":
+        return <PenTool size={28} color="#f59e0b" />
+      default:
+        return <BookOpen size={28} color="#d3fc72" />
+    }
+  }
+
   return (
     <div>
       <div style={{
@@ -111,8 +145,8 @@ export default function RecursosPage() {
         gap: "16px"
       }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>
-            📚 Biblioteca de Recursos Educacionais
+          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "white", display: "flex", alignItems: "center", gap: "10px" }}>
+            <BookOpen size={28} color="#d3fc72" /> Biblioteca de Recursos Educacionais
           </h1>
           <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>
             Materiais de apoio, vídeos, tutoriais e listas de exercícios selecionados para os calouros
@@ -132,32 +166,36 @@ export default function RecursosPage() {
             border: "none",
             cursor: "pointer",
             fontSize: "14px",
-            boxShadow: "0 0 25px rgba(211,252,114,0.2)"
+            boxShadow: "0 0 25px rgba(211,252,114,0.2)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
           }}
         >
-          + Adicionar Recurso
+          <Plus size={18} /> Adicionar Recurso
         </button>
       </div>
 
-      {/* Barra de Pesquisa e Filtro */}
       <div style={{ display: "flex", gap: "12px", marginBottom: "28px", flexWrap: "wrap" }}>
-        <input
-          type="text"
-          placeholder="Buscar recurso por palavra-chave..."
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          style={{
-            padding: "10px 16px",
-            borderRadius: "8px",
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            color: "white",
-            fontSize: "14px",
-            flex: 1,
-            minWidth: "240px",
-            outline: "none"
-          }}
-        />
+        <div style={{ flex: 1, minWidth: "240px", position: "relative" }}>
+          <Search size={18} color="rgba(255,255,255,0.4)" style={{ position: "absolute", left: "14px", top: "12px" }} />
+          <input
+            type="text"
+            placeholder="Buscar recurso por palavra-chave..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 16px 10px 42px",
+              borderRadius: "8px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "white",
+              fontSize: "14px",
+              outline: "none"
+            }}
+          />
+        </div>
         <select
           value={filtroTipo}
           onChange={(e) => setFiltroTipo(e.target.value)}
@@ -172,14 +210,13 @@ export default function RecursosPage() {
           }}
         >
           <option value="">Todos os tipos</option>
-          <option value="DOCUMENTO">📄 Documentos / PDFs</option>
-          <option value="VIDEO">🎥 Vídeos / Videoaulas</option>
-          <option value="EXERCICIO">✏️ Listas de Exercícios</option>
-          <option value="LINK">🔗 Links e Portais</option>
+          <option value="DOCUMENTO">Documentos / PDFs</option>
+          <option value="VIDEO">Vídeos / Videoaulas</option>
+          <option value="EXERCICIO">Listas de Exercícios</option>
+          <option value="LINK">Links e Portais</option>
         </select>
       </div>
 
-      {/* Grid de Recursos */}
       {isLoading ? (
         <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.4)" }}>
           Carregando materiais...
@@ -212,11 +249,27 @@ export default function RecursosPage() {
               gap: "12px",
               transition: "all 0.2s ease"
             }}>
-              <div style={{ fontSize: "32px" }}>
-                {rec.tipo === "VIDEO" && "🎥"}
-                {rec.tipo === "DOCUMENTO" && "📄"}
-                {rec.tipo === "LINK" && "🔗"}
-                {rec.tipo === "EXERCICIO" && "✏️"}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  {getTipoIcon(rec.tipo)}
+                </div>
+                <button
+                  onClick={() => handleExcluirRecurso(rec.id)}
+                  title="Excluir recurso"
+                  style={{
+                    background: "rgba(239, 68, 68, 0.1)",
+                    border: "1px solid rgba(239, 68, 68, 0.2)",
+                    borderRadius: "6px",
+                    padding: "6px",
+                    color: "#ef4444",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
 
               <div>
@@ -252,10 +305,13 @@ export default function RecursosPage() {
                     color: "#a78bfa",
                     textDecoration: "none",
                     fontSize: "12px",
-                    fontWeight: "500"
+                    fontWeight: "500",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px"
                   }}
                 >
-                  Acessar ↗
+                  Acessar <ExternalLink size={14} />
                 </a>
               </div>
             </div>
@@ -263,7 +319,6 @@ export default function RecursosPage() {
         </div>
       )}
 
-      {/* Modal Adicionar Recurso */}
       {showModal && (
         <div style={{
           position: "fixed",
@@ -347,10 +402,10 @@ export default function RecursosPage() {
                   value={formData.tipo}
                   onChange={(e) => setFormData({ ...formData, tipo: e.target.value as any })}
                 >
-                  <option value="DOCUMENTO">📄 Documento / PDF</option>
-                  <option value="VIDEO">🎥 Vídeo / Aula</option>
-                  <option value="EXERCICIO">✏️ Lista de Exercícios</option>
-                  <option value="LINK">🔗 Link Útil / Documentação</option>
+                  <option value="DOCUMENTO">Documento / PDF</option>
+                  <option value="VIDEO">Vídeo / Aula</option>
+                  <option value="EXERCICIO">Lista de Exercícios</option>
+                  <option value="LINK">Link Útil / Documentação</option>
                 </select>
               </div>
 
@@ -440,4 +495,3 @@ export default function RecursosPage() {
     </div>
   )
 }
-
