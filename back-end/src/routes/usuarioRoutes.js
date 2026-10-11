@@ -36,7 +36,7 @@ router.get('/:id', (req, res) => {
 
 router.put('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
   try {
-    const { nomeCompleto, email, ativo, novaSenha } = req.body;
+    const { nomeCompleto, nomeUsuario, email, fotoPerfil, ativo, novaSenha } = req.body;
     let senhaHash = undefined;
 
     if (novaSenha && novaSenha.length >= 4) {
@@ -46,7 +46,9 @@ router.put('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
 
     updateUsuario(req.params.id, {
       nomeCompleto,
+      nomeUsuario,
       email,
+      fotoPerfil,
       ativo,
       senhaHash
     });

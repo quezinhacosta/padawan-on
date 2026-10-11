@@ -8,6 +8,7 @@ const {
   addCalouroToGrupo, 
   removeCalouroFromGrupo, 
   deleteGrupo,
+  getGrupoRelatorioFrequencia,
   logAtividade 
 } = require('../database');
 const { autenticarToken, autorizarRoles } = require('../middleware/auth');
@@ -20,6 +21,18 @@ router.get('/', (req, res) => {
     res.json(grupos);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar grupos', message: error.message });
+  }
+});
+
+router.get('/:id/relatorio-frequencia', (req, res) => {
+  try {
+    const relatorio = getGrupoRelatorioFrequencia(req.params.id);
+    if (!relatorio) {
+      return res.status(404).json({ error: 'Grupo não encontrado' });
+    }
+    res.json(relatorio);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao gerar relatório do grupo', message: error.message });
   }
 });
 

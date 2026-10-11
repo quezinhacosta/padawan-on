@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, Plus, Trash2, Calendar, UserCheck } from "lucide-react"
+import { Users, Plus, Trash2, Calendar, UserCheck, FileText, Download, Printer } from "lucide-react"
 
 interface CalouroMembro {
   calouro_id: number
@@ -164,6 +164,236 @@ export default function GruposPage() {
     }
   }
 
+  const handleGerarRelatorioPdf = async (grupoId: number) => {
+    try {
+      const res = await fetch(`/api/grupos/${grupoId}/relatorio-frequencia`, {
+        headers: getHeaders()
+      })
+      if (!res.ok) {
+        alert("Não foi possível carregar os dados de frequência do grupo.")
+        return
+      }
+
+      const data = await res.json()
+      const { grupo, totalEncontros, encontrosRealizados, totalCalouros, taxaEngajamentoGeral, calouros, encontros } = data
+
+      const printWindow = window.open('', '_blank', 'width=900,height=700')
+      if (!printWindow) {
+        alert("Por favor, permita pop-ups para gerar e imprimir o PDF.")
+        return
+      }
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8">
+          <title>Relatório de Frequência - ${grupo.nome}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 30px;
+              color: #111;
+              background: #fff;
+              line-height: 1.5;
+            }
+            .header {
+              border-bottom: 2px solid #222;
+              padding-bottom: 15px;
+              margin-bottom: 20px;
+            }
+            .header h1 {
+              margin: 0 0 5px 0;
+              font-size: 24px;
+              color: #111;
+            }
+            .header p {
+              margin: 2px 0;
+              font-size: 13px;
+              color: #555;
+            }
+            .metrics-grid {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 15px;
+              margin-bottom: 25px;
+            }
+            .metric-card {
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              padding: 12px;
+              text-align: center;
+              background: #f9f9f9;
+            }
+            .metric-card .val {
+              font-size: 22px;
+              font-weight: bold;
+              margin: 4px 0;
+              color: #000;
+            }
+            .metric-card .lbl {
+              font-size: 11px;
+              color: #666;
+              text-transform: uppercase;
+            }
+            h2 {
+              font-size: 16px;
+              margin-top: 25px;
+              margin-bottom: 10px;
+              border-bottom: 1px solid #eee;
+              padding-bottom: 5px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 25px;
+              font-size: 13px;
+            }
+            th, td {
+              border: 1px solid #e0e0e0;
+              padding: 8px 10px;
+              text-align: left;
+            }
+            th {
+              background: #f2f2f2;
+              font-weight: 600;
+            }
+            .badge {
+              display: inline-block;
+              padding: 2px 6px;
+              border-radius: 4px;
+              font-size: 11px;
+              font-weight: bold;
+            }
+            .badge-high { background: #dcfce7; color: #15803d; }
+            .badge-mid { background: #fef9c3; color: #a16207; }
+            .badge-low { background: #fee2e2; color: #b91c1c; }
+            .footer {
+              margin-top: 30px;
+              padding-top: 15px;
+              border-top: 1px solid #eee;
+              font-size: 11px;
+              color: #888;
+              display: flex;
+              justifyContent: space-between;
+            }
+            @media print {
+              body { margin: 15mm; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="no-print" style="margin-bottom: 20px; text-align: right;">
+            <button onclick="window.print()" style="padding: 8px 18px; font-size: 14px; font-weight: bold; background: #000; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
+              Salvar / Imprimir como PDF
+            </button>
+          </div>
+
+          <div class="header">
+            <h1>Relatório Consolidado de Frequência e Engajamento</h1>
+            <p><strong>Programa Padawan ON</strong> • Universidade Católica de Pernambuco (UNICAP)</p>
+            <p><strong>Grupo:</strong> ${grupo.nome} • <strong>Mentor:</strong> ${grupo.mentor_nome || "Não atribuído"} (${grupo.mentor_email || "-"})</p>
+            <p><strong>Status do Grupo:</strong> ${grupo.status}</p>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="lbl">Total de Encontros</div>
+              <div class="val">${totalEncontros}</div>
+            </div>
+            <div class="metric-card">
+              <div class="lbl">Encontros Realizados</div>
+              <div class="val">${encontrosRealizados}</div>
+            </div>
+            <div class="metric-card">
+              <div class="lbl">Calouros Vinculados</div>
+              <div class="val">${totalCalouros}</div>
+            </div>
+            <div class="metric-card">
+              <div class="lbl">Engajamento Médio</div>
+              <div class="val" style="color: ${taxaEngajamentoGeral >= 75 ? '#15803d' : '#a16207'}">${taxaEngajamentoGeral}%</div>
+            </div>
+          </div>
+
+          <h2>Frequência Nominal dos Calouros</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Nome do Calouro</th>
+                <th>RA</th>
+                <th>E-mail</th>
+                <th>Presenças Registradas</th>
+                <th>Total Encontros</th>
+                <th>Engajamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${calouros.length === 0 ? '<tr><td colspan="6" style="text-align:center; color:#888;">Nenhum calouro vinculado a este grupo.</td></tr>' : ''}
+              ${calouros.map((c: any) => `
+                <tr>
+                  <td><strong>${c.nome}</strong></td>
+                  <td>${c.ra}</td>
+                  <td>${c.email}</td>
+                  <td>${c.presencas}</td>
+                  <td>${c.totalEncontros}</td>
+                  <td>
+                    <span class="badge ${c.porcentagemEngajamento >= 75 ? 'badge-high' : c.porcentagemEngajamento >= 50 ? 'badge-mid' : 'badge-low'}">
+                      ${c.porcentagemEngajamento}%
+                    </span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <h2>Histórico de Encontros de Tutoria</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Título da Sessão</th>
+                <th>Data e Horário</th>
+                <th>Local / Modalidade</th>
+                <th>Status</th>
+                <th>Quórum Presente</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${encontros.length === 0 ? '<tr><td colspan="5" style="text-align:center; color:#888;">Nenhum encontro agendado para este grupo.</td></tr>' : ''}
+              ${encontros.map((e: any) => `
+                <tr>
+                  <td><strong>${e.titulo}</strong></td>
+                  <td>${new Date(e.data_hora).toLocaleString('pt-BR')}</td>
+                  <td>${e.local || 'Online'}</td>
+                  <td>${e.status}</td>
+                  <td>${e.presentesCount} / ${e.totalEsperado} alunos</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="footer">
+            <span>Padawan ON • Relatório Oficial de Extensão Acadêmica</span>
+            <span>Gerado em: ${new Date().toLocaleString('pt-BR')}</span>
+          </div>
+
+          <script>
+            window.onload = function() {
+              window.print();
+            }
+          </script>
+        </body>
+        </html>
+      `
+
+      printWindow.document.open()
+      printWindow.document.write(htmlContent)
+      printWindow.document.close()
+    } catch (err) {
+      alert("Erro ao processar relatório em PDF.")
+    }
+  }
+
   return (
     <div>
       <div style={{
@@ -311,24 +541,45 @@ export default function GruposPage() {
                       : "Nenhum agendado"}
                   </p>
                 </div>
-                <button
-                  onClick={() => handleExcluirGrupo(grupo.id, grupo.nome)}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,0,0,0.1)",
-                    border: "1px solid rgba(255,0,0,0.2)",
-                    color: "#ff6b6b",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    fontSize: "12px"
-                  }}
-                  title="Excluir Grupo"
-                >
-                  <Trash2 size={13} /> Excluir
-                </button>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <button
+                    onClick={() => handleGerarRelatorioPdf(grupo.id)}
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "8px",
+                      background: "rgba(211,252,114,0.1)",
+                      border: "1px solid rgba(211,252,114,0.25)",
+                      color: "#d3fc72",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "12px",
+                      fontWeight: "500"
+                    }}
+                    title="Baixar Relatório de Frequência em PDF"
+                  >
+                    <FileText size={13} /> Relatório PDF
+                  </button>
+                  <button
+                    onClick={() => handleExcluirGrupo(grupo.id, grupo.nome)}
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "8px",
+                      background: "rgba(255,0,0,0.1)",
+                      border: "1px solid rgba(255,0,0,0.2)",
+                      color: "#ff6b6b",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "12px"
+                    }}
+                    title="Excluir Grupo"
+                  >
+                    <Trash2 size={13} /> Excluir
+                  </button>
+                </div>
               </div>
             </div>
           ))}

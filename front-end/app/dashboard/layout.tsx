@@ -26,6 +26,7 @@ interface User {
   role: UserRole
   ra?: string
   email?: string
+  foto_perfil?: string
 }
 
 export default function DashboardLayout({
@@ -154,9 +155,19 @@ export default function DashboardLayout({
               justifyContent: "center",
               fontSize: "16px",
               fontWeight: "bold",
-              color: user.role === "ORIENTADOR" ? "black" : "white"
+              color: user.role === "ORIENTADOR" ? "black" : "white",
+              overflow: "hidden",
+              flexShrink: 0
             }}>
-              {userInitial}
+              {user.foto_perfil ? (
+                <img
+                  src={user.foto_perfil}
+                  alt={displayName}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                userInitial
+              )}
             </div>
             <div style={{ overflow: "hidden" }}>
               <p style={{ 
@@ -201,7 +212,7 @@ export default function DashboardLayout({
               <DashboardNavItem href="/dashboard/encontros" icon={<Calendar size={18} />} label="Encontros" />
               <DashboardNavItem href="/dashboard/recursos" icon={<BookOpen size={18} />} label="Recursos" />
               <DashboardNavItem href="/dashboard/relatorios" icon={<BarChart3 size={18} />} label="Relatórios" />
-              <DashboardNavItem href="/dashboard/configuracoes" icon={<Settings size={18} />} label="Configurações" />
+              <DashboardNavItem href="/dashboard/configuracoes" icon={<Settings size={18} />} label="Minha Conta" />
             </>
           )}
 
@@ -212,6 +223,7 @@ export default function DashboardLayout({
               <DashboardNavItem href="/dashboard/encontros" icon={<Calendar size={18} />} label="Encontros" />
               <DashboardNavItem href="/dashboard/recursos" icon={<BookOpen size={18} />} label="Recursos" />
               <DashboardNavItem href="/dashboard/relatorios" icon={<BarChart3 size={18} />} label="Relatórios" />
+              <DashboardNavItem href="/dashboard/configuracoes" icon={<Settings size={18} />} label="Minha Conta" />
             </>
           )}
 
@@ -221,6 +233,7 @@ export default function DashboardLayout({
               <DashboardNavItem href="/dashboard/meu-mentor" icon={<UserCheck size={18} />} label="Meu Mentor" />
               <DashboardNavItem href="/dashboard/encontros" icon={<Calendar size={18} />} label="Meus Encontros" />
               <DashboardNavItem href="/dashboard/recursos" icon={<BookOpen size={18} />} label="Biblioteca" />
+              <DashboardNavItem href="/dashboard/configuracoes" icon={<Settings size={18} />} label="Minha Conta" />
             </>
           )}
         </nav>

@@ -184,6 +184,7 @@ Todas as rotas autenticadas requerem o cabecalho HTTP:
 - `POST /api/auth/login`: Realiza login por RA ou E-mail e Senha. Retorna Token JWT e objeto do usuario.
 - `POST /api/auth/register`: Registro de calouro com hash bcrypt da senha.
 - `GET /api/auth/me`: Retorna os dados do usuario logado.
+- `PUT /api/auth/perfil`: Atualiza nome, e-mail, senha e foto de perfil do usuario autenticado.
 
 ### Dashboard & Metricas (`/api/dashboard`)
 - `GET /api/dashboard/stats`: Indicadores consolidados para Orientadores.
@@ -206,6 +207,7 @@ Todas as rotas autenticadas requerem o cabecalho HTTP:
 
 ### Grupos (`/api/grupos`)
 - `GET /api/grupos`: Lista grupos com mentor e calouros membros.
+- `GET /api/grupos/:id/relatorio-frequencia`: Retorna metricas consolidadas, lista de encontros e frequencia nominal dos calouros para emissao de relatorio/PDF.
 - `POST /api/grupos`: Cria grupo, associa mentor e vincula calouros em lote.
 - `POST /api/grupos/:id/calouros`: Adiciona calouro individual ao grupo.
 - `DELETE /api/grupos/:id/calouros/:calouroId`: Remove calouro do grupo.

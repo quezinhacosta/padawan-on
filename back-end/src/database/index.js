@@ -25,6 +25,9 @@ function initDb() {
     const schemaSql = fs.readFileSync(schemaPath, 'utf8');
     db.exec(schemaSql);
   }
+  try {
+    db.exec('ALTER TABLE usuarios ADD COLUMN foto_perfil TEXT;');
+  } catch (err) {}
 }
 
 initDb();
@@ -45,16 +48,16 @@ function getUsuarioByEmail(email) {
 }
 
 function getUsuarioById(id) {
-  const stmt = db.prepare('SELECT id, nome_usuario, nome_completo, email, ra, role, ativo, created_at FROM usuarios WHERE id = ?');
+  const stmt = db.prepare('SELECT id, nome_usuario, nome_completo, email, ra, role, foto_perfil, ativo, created_at FROM usuarios WHERE id = ?');
   return stmt.get(id);
 }
 
 function getAllUsuarios(role = null) {
   if (role) {
-    const stmt = db.prepare('SELECT id, nome_usuario, nome_completo, email, ra, role, ativo, created_at FROM usuarios WHERE role = ? ORDER BY nome_completo');
+    const stmt = db.prepare('SELECT id, nome_usuario, nome_completo, email, ra, role, foto_perfil, ativo, created_at FROM usuarios WHERE role = ? ORDER BY nome_completo');
     return stmt.all(role);
   }
-  const stmt = db.prepare('SELECT id, nome_usuario, nome_completo, email, ra, role, ativo, created_at FROM usuarios ORDER BY nome_completo');
+  const stmt = db.prepare('SELECT id, nome_usuario, nome_completo, email, ra, role, foto_perfil, ativo, created_at FROM usuarios ORDER BY nome_completo');
   return stmt.all();
 }
 
@@ -66,28 +69,32 @@ function createUsuario({ nomeUsuario, nomeCompleto, email, ra, senhaHash, role =
   return stmt.run(nomeUsuario, nomeCompleto, email, ra, senhaHash, role, ativo);
 }
 
-function updateUsuario(id, { nomeCompleto, email, ativo, senhaHash }) {
+function updateUsuario(id, { nomeUsuario, nomeCompleto, email, fotoPerfil, ativo, senhaHash }) {
   if (senhaHash) {
     const stmt = db.prepare(`
       UPDATE usuarios 
-      SET nome_completo = COALESCE(?, nome_completo),
+      SET nome_usuario = COALESCE(?, nome_usuario),
+          nome_completo = COALESCE(?, nome_completo),
           email = COALESCE(?, email),
+          foto_perfil = COALESCE(?, foto_perfil),
           ativo = COALESCE(?, ativo),
           senha_hash = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
-    return stmt.run(nomeCompleto, email, ativo, senhaHash, id);
+    return stmt.run(nomeUsuario, nomeCompleto, email, fotoPerfil, ativo, senhaHash, id);
   }
   const stmt = db.prepare(`
     UPDATE usuarios 
-    SET nome_completo = COALESCE(?, nome_completo),
+    SET nome_usuario = COALESCE(?, nome_usuario),
+        nome_completo = COALESCE(?, nome_completo),
         email = COALESCE(?, email),
+        foto_perfil = COALESCE(?, foto_perfil),
         ativo = COALESCE(?, ativo),
         updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
-  return stmt.run(nomeCompleto, email, ativo, id);
+  return stmt.run(nomeUsuario, nomeCompleto, email, fotoPerfil, ativo, id);
 }
 
 function deleteUsuario(id) {
@@ -455,6 +462,96 @@ function deleteGrupo(id) {
   return stmt.run(id);
 }
 
+function getGrupoRelatorioFrequencia(grupoId) {
+  const grupo = getGrupoById(grupoId);
+  if (!grupo) return null;
+
+  const encontrosStmt = db.prepare(`
+    SELECT 
+      e.id,
+      e.titulo,
+      e.descricao,
+      e.data_hora,
+      e.duracao,
+      e.local,
+      e.status,
+      e.tema
+    FROM encontros e
+    WHERE e.grupo_id = ?
+    ORDER BY e.data_hora ASC
+  `);
+  const encontros = encontrosStmt.all(grupoId);
+
+  const freqMapStmt = db.prepare(`
+    SELECT 
+      f.encontro_id,
+      f.calouro_id,
+      f.presente,
+      f.observacao
+    FROM frequencia f
+    JOIN encontros e ON e.id = f.encontro_id
+    WHERE e.grupo_id = ?
+  `);
+  const allFreqs = freqMapStmt.all(grupoId);
+
+  const freqLookup = {};
+  for (const f of allFreqs) {
+    if (!freqLookup[f.encontro_id]) freqLookup[f.encontro_id] = {};
+    freqLookup[f.encontro_id][f.calouro_id] = f.presente;
+  }
+
+  const calourosReport = (grupo.calouros || []).map(c => {
+    let presencas = 0;
+    let totalEncontros = encontros.length;
+    encontros.forEach(e => {
+      if (freqLookup[e.id] && freqLookup[e.id][c.calouro_id] === 1) {
+        presencas++;
+      }
+    });
+    const taxa = totalEncontros > 0 ? Math.round((presencas / totalEncontros) * 100) : 0;
+    return {
+      calouro_id: c.calouro_id,
+      nome: c.nome,
+      ra: c.ra,
+      email: c.email,
+      presencas,
+      totalEncontros,
+      porcentagemEngajamento: taxa
+    };
+  });
+
+  const totalEsperadoGeral = calourosReport.length * encontros.length;
+  const totalPresencasGeral = calourosReport.reduce((acc, c) => acc + c.presencas, 0);
+  const taxaEngajamentoGeral = totalEsperadoGeral > 0 
+    ? Math.round((totalPresencasGeral / totalEsperadoGeral) * 100) 
+    : 0;
+
+  return {
+    grupo: {
+      id: grupo.id,
+      nome: grupo.nome,
+      descricao: grupo.descricao,
+      status: grupo.status,
+      mentor_nome: grupo.mentor_nome,
+      mentor_email: grupo.mentor_email
+    },
+    totalEncontros: encontros.length,
+    encontrosRealizados: encontros.filter(e => e.status === 'REALIZADO' || new Date(e.data_hora) <= new Date()).length,
+    totalCalouros: calourosReport.length,
+    taxaEngajamentoGeral,
+    calouros: calourosReport,
+    encontros: encontros.map(e => ({
+      id: e.id,
+      titulo: e.titulo,
+      data_hora: e.data_hora,
+      local: e.local,
+      status: e.status,
+      presentesCount: (grupo.calouros || []).filter(c => freqLookup[e.id] && freqLookup[e.id][c.calouro_id] === 1).length,
+      totalEsperado: (grupo.calouros || []).length
+    }))
+  };
+}
+
 function getAllEncontros({ grupoId = null, mentorId = null, calouroId = null } = {}) {
   let query = `
     SELECT 
@@ -691,5 +788,6 @@ module.exports = {
   logAtividade,
   getAtividadesRecentes,
   getDashboardStats,
-  getOrientadorByUsuarioId
+  getOrientadorByUsuarioId,
+  getGrupoRelatorioFrequencia
 };
