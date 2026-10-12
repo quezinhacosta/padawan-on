@@ -16,7 +16,7 @@ const { autenticarToken, autorizarRoles } = require('../middleware/auth');
 
 router.use(autenticarToken);
 
-router.get('/', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.get('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     const administradores = getAllAdministradores();
     res.json(administradores);
@@ -37,7 +37,7 @@ router.get('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => 
   }
 });
 
-router.post('/', autorizarRoles('ORIENTADOR'), async (req, res) => {
+router.post('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), async (req, res) => {
   try {
     const { 
       nomeCompleto, 
@@ -99,7 +99,7 @@ router.post('/', autorizarRoles('ORIENTADOR'), async (req, res) => {
   }
 });
 
-router.put('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     const { departamento, cargo } = req.body;
     updateAdministrador(req.params.id, { departamento, cargo });
@@ -116,7 +116,7 @@ router.put('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
   }
 });
 
-router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.delete('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     const admin = getAdministradorById(req.params.id);
     if (!admin) {

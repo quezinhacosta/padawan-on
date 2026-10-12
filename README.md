@@ -95,10 +95,11 @@ A plataforma estrutura-se sobre a seguinte hierarquia estrita de autoridade:
 - **Relatorios Executivos e Auditoria:** Indicadores gerais, taxas de frequencia de qualquer grupo, log de movimentacoes e exportacao de relatorios nominais e PDF de presenca.
 
 ### 2. Para Administradores
-- **Gestao Departamental / Grupos Designados:** Cada grupo de mentoria e gerenciado por um Administrador.
-- **Isolamento de Escopo:** O Administrador visualiza apenas as movimentacoes, sessoes e membros do grupo que gerencia, **sem acesso nem visibilidade a situacao de outros grupos**.
-- **Vinculacao e Relacionamento:** Estabelece a relacao direta entre Calouro e Mentor dentro do seu grupo.
-- **Confirmacao e Acompanhamento:** Confirma encontros de mentoria, lanca feedbacks, mensagens e emite relatorios de frequencia em PDF do seu grupo.
+- **Gestao Departamental e de Grupos:** Administradores gerenciam os grupos de mentoria, formam equipes, definem mentores e alocam calouros.
+- **Criacao de Administradores:** Administradores possuem permissao para cadastrar novos administradores na plataforma.
+- **Isolamento de Escopo:** O Administrador visualiza as movimentacoes e sessoes do grupo que gerencia, sem interferir em grupos alheios.
+- **Vinculacao e Relacionamento:** Estabelece a relacao direta entre Calouro e Mentor dentro do grupo.
+- **Confirmacao e Acompanhamento:** Confirma encontros de mentoria, lanca feedbacks, mensagens e emite relatorios de frequencia em PDF do grupo.
 
 ### 3. Para Mentores (Veteranos)
 - **Escopo e Restricao:** Os mentores gerenciam exclusivamente os calouros a quem estao atrelados. **Mentores nao possuem poderes administrativos** (nao criam nem excluem grupos ou outros usuarios).
@@ -125,14 +126,18 @@ O sistema elimina botoes externos de envio de e-mail e adota um canal de **Micro
 - **Isolamento e Seguranca:** Mensagens sao auditadas e segregadas por remetente, destinatario e grupo de mentoria.
 - **Registro Permanente:** O historico de comunicacoes fica registrado na base de dados relacional.
 
-- **Cadastro Publico (`/cadastro`):** Restrito exclusivamente a **Calouros** e **Mentores**. Administradores e Orientadores sao cadastrados e gerenciados internamente na plataforma.
-- **Credenciais Iniciais:** O banco de dados e inicializado com a conta da orientadora Quezia:
+---
+
+## Cadastro e Credenciais
+
+- **Cadastro Publico (`/cadastro`):** Restrito exclusivamente a **Calouros** e **Mentores**. Administradores sao gerenciados internamente por quem ja possui perfil administrativo.
+- **Credenciais Iniciais:** O banco de dados e limpo e inicializado exclusivamente com a conta administrativa de Quezia:
 
 | Papel | Nome | Usuario | E-mail | RA | Senha |
 |---|---|---|---|---|---|
-| **Orientador (Super-Admin)** | Quezia | `quezia` | `quezia@unicap.br` | `2011` | `2011` |
+| **Administrador Geral** | Quezia | `quezia` | `quezia@unicap.br` | `2011` | `2011` |
 
-O login pode ser realizado informando tanto o E-mail institucional quanto o RA.
+O login pode ser realizado informando tanto o E-mail institucional (`quezia@unicap.br`) quanto o RA (`2011`).
 
 ---
 

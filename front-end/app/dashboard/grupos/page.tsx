@@ -433,15 +433,15 @@ export default function GruposPage() {
       }}>
         <div>
           <h1 style={{ fontSize: "26px", fontWeight: "bold", color: "white" }}>
-            {currentUser?.tipo === "ADMINISTRADOR" ? "Meu Grupo de Mentoria" : "Gerenciar Grupos de Mentoria"}
+            {currentUser?.role === "ADMINISTRADOR" ? "Meu Grupo de Mentoria" : "Gerenciar Grupos de Mentoria"}
           </h1>
           <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px", fontSize: "14px" }}>
-            {currentUser?.tipo === "ADMINISTRADOR"
+            {currentUser?.role === "ADMINISTRADOR"
               ? "Gerencie os membros, mentores e calouros sob sua administração direta"
               : "Crie novos grupos com administradores, vincule mentores e aloque calouros do programa"}
           </p>
         </div>
-        {currentUser?.tipo === "ORIENTADOR" && (
+        {(currentUser?.role === "ORIENTADOR" || currentUser?.role === "ADMINISTRADOR") && (
           <button
             onClick={() => {
               setErro("")
@@ -649,7 +649,7 @@ export default function GruposPage() {
                   >
                     <FileText size={13} /> Relatório PDF
                   </button>
-                  {currentUser?.tipo === "ORIENTADOR" && (
+                  {(currentUser?.role === "ORIENTADOR" || currentUser?.role === "ADMINISTRADOR") && (
                     <button
                       onClick={() => handleExcluirGrupo(grupo.id, grupo.nome)}
                       style={{

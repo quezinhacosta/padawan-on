@@ -224,6 +224,7 @@ export default function DashboardLayout({
           {user.role === "ADMINISTRADOR" && (
             <>
               <DashboardNavItem href="/dashboard/administrador" icon={<LayoutDashboard size={18} />} label="Meu Painel" />
+              <DashboardNavItem href="/dashboard/administradores" icon={<Shield size={18} />} label="Administradores" />
               <DashboardNavItem href="/dashboard/grupos" icon={<Users size={18} />} label="Meu Grupo" />
               <DashboardNavItem href="/dashboard/mentores" icon={<UserCheck size={18} />} label="Mentores" />
               <DashboardNavItem href="/dashboard/calouros" icon={<Users size={18} />} label="Calouros" />

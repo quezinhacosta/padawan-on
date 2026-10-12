@@ -10,11 +10,15 @@ async function seed() {
 
   db.exec(`
     DELETE FROM frequencia;
+    DELETE FROM feedbacks;
+    DELETE FROM mensagens;
+    DELETE FROM encontros_calouros;
     DELETE FROM encontros;
     DELETE FROM calouros_grupos;
     DELETE FROM grupos;
     DELETE FROM calouros;
     DELETE FROM mentores;
+    DELETE FROM administradores;
     DELETE FROM orientadores;
     DELETE FROM atividades;
     DELETE FROM recursos;
@@ -30,16 +34,26 @@ async function seed() {
     email: 'quezia@unicap.br',
     ra: '2011',
     senhaHash,
-    role: 'ORIENTADOR',
+    role: 'ADMINISTRADOR',
     ativo: 1
   });
 
+  const usuarioId = adminUserRes.lastInsertRowid;
+
+  db.prepare(`
+    INSERT INTO administradores (usuario_id, departamento, cargo)
+    VALUES (?, 'Ciência da Computação', 'Administrador Geral')
+  `).run(usuarioId);
+
   db.prepare(`
     INSERT INTO orientadores (usuario_id, departamento, cargo)
-    VALUES (?, 'Ciência da Computação', 'Administrador')
-  `).run(adminUserRes.lastInsertRowid);
+    VALUES (?, 'Ciência da Computação', 'Orientador / Administrador')
+  `).run(usuarioId);
 }
 
-seed().catch(err => {
+seed().then(() => {
+  console.log('Seed executado com sucesso');
+}).catch(err => {
+  console.error('Erro no seed:', err);
   process.exit(1);
 });
