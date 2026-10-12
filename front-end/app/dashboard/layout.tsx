@@ -13,7 +13,8 @@ import {
   BarChart3, 
   Settings, 
   LogOut,
-  User as UserIcon
+  User as UserIcon,
+  Shield
 } from "lucide-react"
 
 type UserRole = "ORIENTADOR" | "ADMINISTRADOR" | "MENTOR" | "CALOURO"
@@ -206,12 +207,26 @@ export default function DashboardLayout({
         </div>
 
         <nav style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}>
-          {(user.role === "ORIENTADOR" || user.role === "ADMINISTRADOR") && (
+          {user.role === "ORIENTADOR" && (
             <>
               <DashboardNavItem href="/dashboard" icon={<LayoutDashboard size={18} />} label="Visão Geral" />
+              <DashboardNavItem href="/dashboard/administradores" icon={<Shield size={18} />} label="Administradores" />
+              <DashboardNavItem href="/dashboard/grupos" icon={<Users size={18} />} label="Grupos" />
               <DashboardNavItem href="/dashboard/mentores" icon={<UserCheck size={18} />} label="Mentores" />
               <DashboardNavItem href="/dashboard/calouros" icon={<Users size={18} />} label="Calouros" />
-              <DashboardNavItem href="/dashboard/grupos" icon={<Users size={18} />} label="Grupos" />
+              <DashboardNavItem href="/dashboard/encontros" icon={<Calendar size={18} />} label="Encontros" />
+              <DashboardNavItem href="/dashboard/recursos" icon={<BookOpen size={18} />} label="Recursos" />
+              <DashboardNavItem href="/dashboard/relatorios" icon={<BarChart3 size={18} />} label="Relatórios" />
+              <DashboardNavItem href="/dashboard/configuracoes" icon={<Settings size={18} />} label="Minha Conta" />
+            </>
+          )}
+
+          {user.role === "ADMINISTRADOR" && (
+            <>
+              <DashboardNavItem href="/dashboard/administrador" icon={<LayoutDashboard size={18} />} label="Meu Painel" />
+              <DashboardNavItem href="/dashboard/grupos" icon={<Users size={18} />} label="Meu Grupo" />
+              <DashboardNavItem href="/dashboard/mentores" icon={<UserCheck size={18} />} label="Mentores" />
+              <DashboardNavItem href="/dashboard/calouros" icon={<Users size={18} />} label="Calouros" />
               <DashboardNavItem href="/dashboard/encontros" icon={<Calendar size={18} />} label="Encontros" />
               <DashboardNavItem href="/dashboard/recursos" icon={<BookOpen size={18} />} label="Recursos" />
               <DashboardNavItem href="/dashboard/relatorios" icon={<BarChart3 size={18} />} label="Relatórios" />

@@ -226,6 +226,13 @@ Todas as rotas autenticadas requerem o cabecalho HTTP:
 - `GET /api/mensagens?grupoId=:id`: Retorna o historico de comunicacoes associadas a determinado grupo.
 - `POST /api/mensagens`: Envia nova mensagem ou feedback pre-formatado para um membro da equipe.
 
+### Administradores (`/api/administradores`)
+- `GET /api/administradores`: Lista todos os administradores com grupos sob gestao (exclusivo Orientador).
+- `GET /api/administradores/:id`: Dados detalhados do administrador.
+- `POST /api/administradores`: Cadastra novo administrador com credenciais e departamento (exclusivo Orientador).
+- `PUT /api/administradores/:id`: Atualiza departamento e cargo do administrador.
+- `DELETE /api/administradores/:id`: Exclui administrador e desvincula grupos correspondentes.
+
 ### Mentores (`/api/mentores`)
 - `GET /api/mentores`: Lista todos os mentores com contagem de alunos atendidos.
 - `GET /api/mentores/meus-calouros`: Lista calouros do mentor logado.

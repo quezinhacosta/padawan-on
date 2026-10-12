@@ -379,8 +379,72 @@ function deleteCalouro(id) {
 }
 
 function getAdministradorByUsuarioId(usuarioId) {
-  const stmt = db.prepare('SELECT * FROM administradores WHERE usuario_id = ?');
+  const stmt = db.prepare(`
+    SELECT a.*, u.nome_completo as nome, u.nome_usuario, u.email, u.ra, u.ativo, u.foto_perfil
+    FROM administradores a
+    JOIN usuarios u ON u.id = a.usuario_id
+    WHERE a.usuario_id = ?
+  `);
   return stmt.get(usuarioId);
+}
+
+function getAdministradorById(id) {
+  const stmt = db.prepare(`
+    SELECT a.*, u.nome_completo as nome, u.nome_usuario, u.email, u.ra, u.ativo, u.foto_perfil
+    FROM administradores a
+    JOIN usuarios u ON u.id = a.usuario_id
+    WHERE a.id = ?
+  `);
+  return stmt.get(id);
+}
+
+function getAllAdministradores() {
+  const stmt = db.prepare(`
+    SELECT 
+      a.id,
+      a.usuario_id,
+      a.departamento,
+      a.cargo,
+      a.created_at,
+      u.nome_completo as nome,
+      u.nome_usuario,
+      u.email,
+      u.ra,
+      u.ativo,
+      (SELECT COUNT(*) FROM grupos g WHERE g.admin_id = a.id) as grupos_count,
+      (SELECT g.nome FROM grupos g WHERE g.admin_id = a.id LIMIT 1) as grupo_nome
+    FROM administradores a
+    JOIN usuarios u ON u.id = a.usuario_id
+    ORDER BY u.nome_completo
+  `);
+  return stmt.all();
+}
+
+function createAdministrador({ usuarioId, departamento = 'Ciência da Computação', cargo = 'Líder / Administrador de Grupo' }) {
+  const stmt = db.prepare(`
+    INSERT INTO administradores (usuario_id, departamento, cargo)
+    VALUES (?, ?, ?)
+  `);
+  return stmt.run(usuarioId, departamento, cargo);
+}
+
+function updateAdministrador(id, { departamento, cargo }) {
+  const stmt = db.prepare(`
+    UPDATE administradores
+    SET departamento = COALESCE(?, departamento),
+        cargo = COALESCE(?, cargo)
+    WHERE id = ?
+  `);
+  return stmt.run(departamento, cargo, id);
+}
+
+function deleteAdministrador(id) {
+  const admin = db.prepare('SELECT usuario_id FROM administradores WHERE id = ?').get(id);
+  db.prepare('UPDATE grupos SET admin_id = NULL WHERE admin_id = ?').run(id);
+  db.prepare('DELETE FROM administradores WHERE id = ?').run(id);
+  if (admin && admin.usuario_id) {
+    db.prepare('DELETE FROM usuarios WHERE id = ?').run(admin.usuario_id);
+  }
 }
 
 function getAllGrupos({ adminId = null, orientadorId = null, mentorId = null } = {}) {
@@ -1043,6 +1107,11 @@ module.exports = {
   getDashboardStats,
   getOrientadorByUsuarioId,
   getAdministradorByUsuarioId,
+  getAdministradorById,
+  getAllAdministradores,
+  createAdministrador,
+  updateAdministrador,
+  deleteAdministrador,
   getGrupoRelatorioFrequencia,
   responderConviteEncontro,
   getEncontroCalourosRespostas,

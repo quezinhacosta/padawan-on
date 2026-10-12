@@ -56,8 +56,10 @@ export default function Home() {
       localStorage.setItem('user', JSON.stringify(data.usuario))
 
       const role = data.usuario.role
-      if (role === "ORIENTADOR" || role === "ADMINISTRADOR") {
+      if (role === "ORIENTADOR") {
         router.push("/dashboard")
+      } else if (role === "ADMINISTRADOR") {
+        router.push("/dashboard/administrador")
       } else if (role === "MENTOR") {
         router.push("/dashboard/mentor")
       } else if (role === "CALOURO") {

@@ -25,9 +25,11 @@ const encontroRoutes = require('./src/routes/encontroRoutes');
 const recursoRoutes = require('./src/routes/recursoRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const mensagemRoutes = require('./src/routes/mensagemRoutes');
+const administradorRoutes = require('./src/routes/administradorRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/administradores', administradorRoutes);
 app.use('/api/mentores', mentorRoutes);
 app.use('/api/calouros', calouroRoutes);
 app.use('/api/grupos', grupoRoutes);
