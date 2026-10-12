@@ -1,18 +1,23 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { UserCheck, Mail, Send } from "lucide-react"
+import { UserCheck, Mail, MessageSquare } from "lucide-react"
+import MicroChatModal from "../../components/MicroChatModal"
 
 interface CalouroPerfil {
+  mentor_id: number | null
+  mentor_usuario_id: number | null
   mentor_nome: string | null
   mentor_email: string | null
   mentor_disponivel: boolean | number | null
+  grupo_id: number | null
   grupo_nome: string | null
 }
 
 export default function MeuMentorPage() {
   const [perfil, setPerfil] = useState<CalouroPerfil | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showChat, setShowChat] = useState(false)
 
   useEffect(() => {
     carregarPerfil()
@@ -137,16 +142,16 @@ export default function MeuMentorPage() {
             </p>
           </div>
 
-          <a
-            href={`mailto:${perfil.mentor_email}?subject=Mentoria UNICAP - Apoio`}
+          <button
+            onClick={() => setShowChat(true)}
             style={{
               padding: "12px",
               borderRadius: "12px",
               background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
               color: "black",
               fontWeight: "600",
-              textAlign: "center",
-              textDecoration: "none",
+              border: "none",
+              cursor: "pointer",
               fontSize: "14px",
               boxShadow: "0 0 25px rgba(211,252,114,0.2)",
               display: "flex",
@@ -155,8 +160,18 @@ export default function MeuMentorPage() {
               gap: "8px"
             }}
           >
-            <Send size={16} /> Enviar Mensagem por E-mail
-          </a>
+            <MessageSquare size={16} /> Abrir Micro-Chat & Feedbacks
+          </button>
+
+          {showChat && perfil.mentor_usuario_id && (
+            <MicroChatModal
+              destinatarioId={perfil.mentor_usuario_id}
+              destinatarioNome={perfil.mentor_nome}
+              destinatarioRole="Mentor"
+              grupoId={perfil.grupo_id}
+              onClose={() => setShowChat(false)}
+            />
+          )}
         </div>
       )}
     </div>

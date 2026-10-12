@@ -10,8 +10,10 @@ const {
   updateUsuario,
   createUsuario, 
   createCalouro, 
+  createMentor,
   getMentorByUsuarioId,
   getCalouroByUsuarioId,
+  getAdministradorByUsuarioId,
   logAtividade 
 } = require('../database');
 const { autenticarToken, JWT_SECRET } = require('../middleware/auth');
@@ -62,6 +64,8 @@ router.post('/login', async (req, res) => {
       detalhesPerfil = getMentorByUsuarioId(usuario.id);
     } else if (usuario.role === 'CALOURO') {
       detalhesPerfil = getCalouroByUsuarioId(usuario.id);
+    } else if (usuario.role === 'ADMINISTRADOR') {
+      detalhesPerfil = getAdministradorByUsuarioId(usuario.id);
     }
 
     const { senha_hash, ...usuarioSemSenha } = usuario;
@@ -89,7 +93,17 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    const { nomeUsuario, nomeCompleto, ra, email, senha, curso = 'Ciência da Computação', periodo = '1º Período' } = req.body;
+    const { 
+      nomeUsuario, 
+      nomeCompleto, 
+      ra, 
+      email, 
+      senha, 
+      role = 'CALOURO', 
+      curso = 'Ciência da Computação', 
+      periodo = '1º Período',
+      especialidades = ''
+    } = req.body;
 
     if (!nomeUsuario || !nomeCompleto || !ra || !senha) {
       return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos' });
@@ -97,6 +111,11 @@ router.post('/register', async (req, res) => {
 
     if (senha.length < 4) {
       return res.status(400).json({ error: 'A senha deve ter no mínimo 4 caracteres' });
+    }
+
+    const roleNormalizada = (role || 'CALOURO').toUpperCase().trim();
+    if (roleNormalizada !== 'CALOURO' && roleNormalizada !== 'MENTOR') {
+      return res.status(403).json({ error: 'Apenas calouros e mentores podem se cadastrar publicamente' });
     }
 
     const raExistente = getUsuarioByRA(ra);
@@ -119,26 +138,37 @@ router.post('/register', async (req, res) => {
       email: emailCalculado,
       ra: ra.trim(),
       senhaHash,
-      role: 'CALOURO',
+      role: roleNormalizada,
       ativo: 1
     });
 
     const novoUsuarioId = userRes.lastInsertRowid;
 
-    createCalouro({
-      usuarioId: novoUsuarioId,
-      curso,
-      periodo
-    });
-
-    logAtividade({
-      usuarioId: novoUsuarioId,
-      tipo: 'CALOURO_ADICIONADO',
-      descricao: `Novo calouro cadastrado: ${nomeCompleto} (${ra})`
-    });
+    if (roleNormalizada === 'MENTOR') {
+      createMentor({
+        usuarioId: novoUsuarioId,
+        especialidades: especialidades || ''
+      });
+      logAtividade({
+        usuarioId: novoUsuarioId,
+        tipo: 'MENTOR_ADICIONADO',
+        descricao: `Novo mentor cadastrado: ${nomeCompleto} (${ra})`
+      });
+    } else {
+      createCalouro({
+        usuarioId: novoUsuarioId,
+        curso,
+        periodo
+      });
+      logAtividade({
+        usuarioId: novoUsuarioId,
+        tipo: 'CALOURO_ADICIONADO',
+        descricao: `Novo calouro cadastrado: ${nomeCompleto} (${ra})`
+      });
+    }
 
     const token = jwt.sign(
-      { id: novoUsuarioId, role: 'CALOURO', ra },
+      { id: novoUsuarioId, role: roleNormalizada, ra },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -154,7 +184,7 @@ router.post('/register', async (req, res) => {
         nome_usuario: nomeUsuario,
         email: emailCalculado,
         ra,
-        role: 'CALOURO',
+        role: roleNormalizada,
         ativo: 1
       }
     });
@@ -169,6 +199,8 @@ router.get('/me', autenticarToken, (req, res) => {
     detalhes = getMentorByUsuarioId(req.usuario.id);
   } else if (req.usuario.role === 'CALOURO') {
     detalhes = getCalouroByUsuarioId(req.usuario.id);
+  } else if (req.usuario.role === 'ADMINISTRADOR') {
+    detalhes = getAdministradorByUsuarioId(req.usuario.id);
   }
 
   res.json({

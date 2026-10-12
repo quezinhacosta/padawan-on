@@ -28,6 +28,61 @@ function initDb() {
   try {
     db.exec('ALTER TABLE usuarios ADD COLUMN foto_perfil TEXT;');
   } catch (err) {}
+  try {
+    db.exec('ALTER TABLE grupos ADD COLUMN admin_id INTEGER REFERENCES administradores(id) ON DELETE SET NULL;');
+  } catch (err) {}
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS administradores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario_id INTEGER UNIQUE REFERENCES usuarios(id) ON DELETE CASCADE,
+        departamento TEXT,
+        cargo TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  } catch (err) {}
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS encontros_calouros (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        encontro_id INTEGER REFERENCES encontros(id) ON DELETE CASCADE,
+        calouro_id INTEGER REFERENCES calouros(id) ON DELETE CASCADE,
+        status TEXT DEFAULT 'PENDENTE' CHECK (status IN ('PENDENTE', 'ACEITO', 'RECUSADO')),
+        resposta_em DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(encontro_id, calouro_id)
+      );
+    `);
+  } catch (err) {}
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS feedbacks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        encontro_id INTEGER REFERENCES encontros(id) ON DELETE CASCADE,
+        autor_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        destinatario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+        tipo TEXT NOT NULL CHECK (tipo IN ('CALOURO_PARA_MENTOR', 'MENTOR_PARA_CALOURO', 'GERAL')),
+        nota INTEGER,
+        comentario TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  } catch (err) {}
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS mensagens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        grupo_id INTEGER REFERENCES grupos(id) ON DELETE CASCADE,
+        remetente_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        destinatario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        conteudo TEXT NOT NULL,
+        tipo TEXT DEFAULT 'CHAT',
+        lida INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  } catch (err) {}
 }
 
 initDb();
@@ -196,6 +251,7 @@ function getMentorCalouros(mentorId) {
       c.id,
       c.curso,
       c.periodo,
+      u.id as usuario_id,
       u.nome_completo as nome,
       u.email,
       u.ra,
@@ -250,6 +306,8 @@ function getCalouroById(id) {
       u.ativo,
       g.id as grupo_id,
       g.nome as grupo_nome,
+      m.id as mentor_id,
+      m.usuario_id as mentor_usuario_id,
       um.nome_completo as mentor_nome,
       um.email as mentor_email,
       m.disponivel as mentor_disponivel
@@ -275,6 +333,8 @@ function getCalouroByUsuarioId(usuarioId) {
       u.ativo,
       g.id as grupo_id,
       g.nome as grupo_nome,
+      m.id as mentor_id,
+      m.usuario_id as mentor_usuario_id,
       um.nome_completo as mentor_nome,
       um.email as mentor_email,
       m.disponivel as mentor_disponivel
@@ -318,8 +378,13 @@ function deleteCalouro(id) {
   }
 }
 
-function getAllGrupos() {
-  const stmt = db.prepare(`
+function getAdministradorByUsuarioId(usuarioId) {
+  const stmt = db.prepare('SELECT * FROM administradores WHERE usuario_id = ?');
+  return stmt.get(usuarioId);
+}
+
+function getAllGrupos({ adminId = null, orientadorId = null, mentorId = null } = {}) {
+  let query = `
     SELECT 
       g.id,
       g.nome,
@@ -327,9 +392,12 @@ function getAllGrupos() {
       g.descricao,
       g.data_criacao,
       g.created_at,
+      g.admin_id,
+      g.orientador_id,
       m.id as mentor_id,
       um.nome_completo as mentor_nome,
       um.email as mentor_email,
+      uadm.nome_completo as admin_nome,
       (
         SELECT MIN(e.data_hora)
         FROM encontros e
@@ -338,13 +406,33 @@ function getAllGrupos() {
     FROM grupos g
     LEFT JOIN mentores m ON m.id = g.mentor_id
     LEFT JOIN usuarios um ON um.id = m.usuario_id
-    ORDER BY g.nome
-  `);
-  const grupos = stmt.all();
+    LEFT JOIN administradores adm ON adm.id = g.admin_id
+    LEFT JOIN usuarios uadm ON uadm.id = adm.usuario_id
+    WHERE 1=1
+  `;
+  const params = [];
+
+  if (adminId) {
+    query += ' AND (g.admin_id = ? OR g.admin_id IN (SELECT id FROM administradores WHERE usuario_id = ?))';
+    params.push(adminId, adminId);
+  }
+  if (orientadorId) {
+    query += ' AND g.orientador_id = ?';
+    params.push(orientadorId);
+  }
+  if (mentorId) {
+    query += ' AND (g.mentor_id = ? OR g.mentor_id IN (SELECT id FROM mentores WHERE usuario_id = ?))';
+    params.push(mentorId, mentorId);
+  }
+
+  query += ' ORDER BY g.nome';
+  const stmt = db.prepare(query);
+  const grupos = stmt.all(...params);
 
   const calourosStmt = db.prepare(`
     SELECT 
       c.id as calouro_id,
+      u.id as usuario_id,
       u.nome_completo as nome,
       u.ra,
       u.email
@@ -366,11 +454,15 @@ function getGrupoById(id) {
     SELECT 
       g.*,
       m.id as mentor_id,
+      m.usuario_id as mentor_usuario_id,
       um.nome_completo as mentor_nome,
-      um.email as mentor_email
+      um.email as mentor_email,
+      uadm.nome_completo as admin_nome
     FROM grupos g
     LEFT JOIN mentores m ON m.id = g.mentor_id
     LEFT JOIN usuarios um ON um.id = m.usuario_id
+    LEFT JOIN administradores adm ON adm.id = g.admin_id
+    LEFT JOIN usuarios uadm ON uadm.id = adm.usuario_id
     WHERE g.id = ?
   `);
   const grupo = stmt.get(id);
@@ -379,6 +471,7 @@ function getGrupoById(id) {
   const calourosStmt = db.prepare(`
     SELECT 
       c.id as calouro_id,
+      u.id as usuario_id,
       u.nome_completo as nome,
       u.ra,
       u.email,
@@ -398,7 +491,7 @@ function getOrientadorByUsuarioId(usuarioId) {
   return stmt.get(usuarioId);
 }
 
-function createGrupo({ nome, mentorId = null, orientadorId = null, descricao = '', status = 'ATIVO' }) {
+function createGrupo({ nome, mentorId = null, orientadorId = null, adminId = null, descricao = '', status = 'ATIVO' }) {
   let finalOrientadorId = null;
   if (orientadorId) {
     const direct = db.prepare('SELECT id FROM orientadores WHERE id = ?').get(orientadorId);
@@ -418,24 +511,44 @@ function createGrupo({ nome, mentorId = null, orientadorId = null, descricao = '
     }
   }
 
+  let finalAdminId = null;
+  if (adminId) {
+    const directAdmin = db.prepare('SELECT id FROM administradores WHERE id = ?').get(adminId);
+    if (directAdmin) {
+      finalAdminId = directAdmin.id;
+    } else {
+      const byUserAdmin = db.prepare('SELECT id FROM administradores WHERE usuario_id = ?').get(adminId);
+      if (byUserAdmin) {
+        finalAdminId = byUserAdmin.id;
+      } else {
+        const adminUser = db.prepare('SELECT id FROM usuarios WHERE id = ? AND role = "ADMINISTRADOR"').get(adminId);
+        if (adminUser) {
+          const createdAdmin = db.prepare('INSERT INTO administradores (usuario_id, departamento, cargo) VALUES (?, ?, ?)').run(adminUser.id, 'Ciência da Computação', 'Administrador');
+          finalAdminId = createdAdmin.lastInsertRowid;
+        }
+      }
+    }
+  }
+
   const stmt = db.prepare(`
-    INSERT INTO grupos (nome, mentor_id, orientador_id, descricao, status)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO grupos (nome, mentor_id, orientador_id, admin_id, descricao, status)
+    VALUES (?, ?, ?, ?, ?, ?)
   `);
-  return stmt.run(nome, mentorId, finalOrientadorId, descricao, status);
+  return stmt.run(nome, mentorId, finalOrientadorId, finalAdminId, descricao, status);
 }
 
-function updateGrupo(id, { nome, mentorId, descricao, status }) {
+function updateGrupo(id, { nome, mentorId, adminId, descricao, status }) {
   const stmt = db.prepare(`
     UPDATE grupos
     SET nome = COALESCE(?, nome),
         mentor_id = COALESCE(?, mentorId),
+        admin_id = COALESCE(?, admin_id),
         descricao = COALESCE(?, descricao),
         status = COALESCE(?, status),
         updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
-  return stmt.run(nome, mentorId, descricao, status, id);
+  return stmt.run(nome, mentorId, adminId, descricao, status, id);
 }
 
 function addCalouroToGrupo(grupoId, calouroId) {
@@ -553,6 +666,11 @@ function getGrupoRelatorioFrequencia(grupoId) {
 }
 
 function getAllEncontros({ grupoId = null, mentorId = null, calouroId = null } = {}) {
+  let selectExtras = '';
+  if (calouroId) {
+    selectExtras = `, (SELECT COALESCE(status, 'PENDENTE') FROM encontros_calouros ec WHERE ec.encontro_id = e.id AND ec.calouro_id = ${Number(calouroId)}) as status_convite`;
+  }
+
   let query = `
     SELECT 
       e.*,
@@ -560,6 +678,7 @@ function getAllEncontros({ grupoId = null, mentorId = null, calouroId = null } =
       um.nome_completo as mentor_nome,
       (SELECT COUNT(f.id) FROM frequencia f WHERE f.encontro_id = e.id AND f.presente = 1) as presentes_count,
       (SELECT COUNT(cg.id) FROM calouros_grupos cg WHERE cg.grupo_id = e.grupo_id AND cg.status = 'ATIVO') as total_esperado
+      ${selectExtras}
     FROM encontros e
     JOIN grupos g ON g.id = e.grupo_id
     LEFT JOIN mentores m ON m.id = g.mentor_id
@@ -645,8 +764,123 @@ function updateEncontro(id, { titulo, descricao, dataHora, duracao, local, tema,
 
 function deleteEncontro(id) {
   db.prepare('DELETE FROM frequencia WHERE encontro_id = ?').run(id);
+  db.prepare('DELETE FROM encontros_calouros WHERE encontro_id = ?').run(id);
+  db.prepare('DELETE FROM feedbacks WHERE encontro_id = ?').run(id);
   const stmt = db.prepare('DELETE FROM encontros WHERE id = ?');
   return stmt.run(id);
+}
+
+function responderConviteEncontro(encontroId, calouroId, status) {
+  const stmt = db.prepare(`
+    INSERT INTO encontros_calouros (encontro_id, calouro_id, status, resposta_em)
+    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(encontro_id, calouro_id) DO UPDATE SET status = ?, resposta_em = CURRENT_TIMESTAMP
+  `);
+  return stmt.run(encontroId, calouroId, status, status);
+}
+
+function getEncontroCalourosRespostas(encontroId) {
+  const stmt = db.prepare(`
+    SELECT 
+      c.id as calouro_id,
+      u.nome_completo,
+      u.ra,
+      COALESCE(ec.status, 'PENDENTE') as status_convite,
+      ec.resposta_em
+    FROM calouros_grupos cg
+    JOIN calouros c ON c.id = cg.calouro_id
+    JOIN usuarios u ON u.id = c.usuario_id
+    JOIN encontros e ON e.grupo_id = cg.grupo_id
+    LEFT JOIN encontros_calouros ec ON ec.encontro_id = e.id AND ec.calouro_id = c.id
+    WHERE e.id = ? AND cg.status = 'ATIVO'
+    ORDER BY u.nome_completo
+  `);
+  return stmt.all(encontroId);
+}
+
+function createFeedback({ encontroId, autorId, destinatarioId = null, tipo, nota = null, comentario }) {
+  const stmt = db.prepare(`
+    INSERT INTO feedbacks (encontro_id, autor_id, destinatario_id, tipo, nota, comentario)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  return stmt.run(encontroId, autorId, destinatarioId, tipo, nota, comentario);
+}
+
+function getFeedbacksByEncontro(encontroId) {
+  const stmt = db.prepare(`
+    SELECT 
+      f.*,
+      u.nome_completo as autor_nome,
+      u.role as autor_role,
+      ud.nome_completo as destinatario_nome
+    FROM feedbacks f
+    JOIN usuarios u ON u.id = f.autor_id
+    LEFT JOIN usuarios ud ON ud.id = f.destinatario_id
+    WHERE f.encontro_id = ?
+    ORDER BY f.created_at DESC
+  `);
+  return stmt.all(encontroId);
+}
+
+function getFeedbacksByGrupo(grupoId) {
+  const stmt = db.prepare(`
+    SELECT 
+      f.*,
+      e.titulo as encontro_titulo,
+      u.nome_completo as autor_nome,
+      u.role as autor_role,
+      ud.nome_completo as destinatario_nome
+    FROM feedbacks f
+    JOIN encontros e ON e.id = f.encontro_id
+    JOIN usuarios u ON u.id = f.autor_id
+    LEFT JOIN usuarios ud ON ud.id = f.destinatario_id
+    WHERE e.grupo_id = ?
+    ORDER BY f.created_at DESC
+  `);
+  return stmt.all(grupoId);
+}
+
+function createMensagem({ grupoId, remetenteId, destinatarioId, conteudo, tipo = 'CHAT' }) {
+  const stmt = db.prepare(`
+    INSERT INTO mensagens (grupo_id, remetente_id, destinatario_id, conteudo, tipo)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  return stmt.run(grupoId || null, remetenteId, destinatarioId, conteudo, tipo);
+}
+
+function getMensagensByGrupo(grupoId) {
+  const stmt = db.prepare(`
+    SELECT 
+      m.*,
+      ur.nome_completo as remetente_nome,
+      ur.role as remetente_role,
+      ud.nome_completo as destinatario_nome,
+      ud.role as destinatario_role
+    FROM mensagens m
+    JOIN usuarios ur ON ur.id = m.remetente_id
+    JOIN usuarios ud ON ud.id = m.destinatario_id
+    WHERE m.grupo_id = ?
+    ORDER BY m.created_at ASC
+  `);
+  return stmt.all(grupoId);
+}
+
+function getMensagensEntreUsuarios(usuario1Id, usuario2Id) {
+  const stmt = db.prepare(`
+    SELECT 
+      m.*,
+      ur.nome_completo as remetente_nome,
+      ur.role as remetente_role,
+      ud.nome_completo as destinatario_nome,
+      ud.role as destinatario_role
+    FROM mensagens m
+    JOIN usuarios ur ON ur.id = m.remetente_id
+    JOIN usuarios ud ON ud.id = m.destinatario_id
+    WHERE (m.remetente_id = ? AND m.destinatario_id = ?)
+       OR (m.remetente_id = ? AND m.destinatario_id = ?)
+    ORDER BY m.created_at ASC
+  `);
+  return stmt.all(usuario1Id, usuario2Id, usuario2Id, usuario1Id);
 }
 
 function registrarFrequencia(encontroId, calouroId, presente = 1, observacao = '') {
@@ -710,6 +944,24 @@ function getAtividadesRecentes(limit = 10) {
     LIMIT ?
   `);
   return stmt.all(limit);
+}
+
+function getAtividadesByGrupo(grupoId, limit = 10) {
+  const stmt = db.prepare(`
+    SELECT a.*, u.nome_completo as usuario_nome, u.role as usuario_role
+    FROM atividades a
+    LEFT JOIN usuarios u ON u.id = a.usuario_id
+    WHERE a.usuario_id IN (
+      SELECT m.usuario_id FROM grupos g JOIN mentores m ON m.id = g.mentor_id WHERE g.id = ?
+      UNION
+      SELECT c.usuario_id FROM calouros_grupos cg JOIN calouros c ON c.id = cg.calouro_id WHERE cg.grupo_id = ? AND cg.status = 'ATIVO'
+      UNION
+      SELECT adm.usuario_id FROM grupos g JOIN administradores adm ON adm.id = g.admin_id WHERE g.id = ?
+    )
+    ORDER BY a.created_at DESC
+    LIMIT ?
+  `);
+  return stmt.all(grupoId, grupoId, grupoId, limit);
 }
 
 function getDashboardStats() {
@@ -787,7 +1039,17 @@ module.exports = {
   deleteRecurso,
   logAtividade,
   getAtividadesRecentes,
+  getAtividadesByGrupo,
   getDashboardStats,
   getOrientadorByUsuarioId,
-  getGrupoRelatorioFrequencia
+  getAdministradorByUsuarioId,
+  getGrupoRelatorioFrequencia,
+  responderConviteEncontro,
+  getEncontroCalourosRespostas,
+  createFeedback,
+  getFeedbacksByEncontro,
+  getFeedbacksByGrupo,
+  createMensagem,
+  getMensagensByGrupo,
+  getMensagensEntreUsuarios
 };

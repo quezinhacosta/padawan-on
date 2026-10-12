@@ -15,21 +15,35 @@
 
 ## Indice
 
-- [Sobre o Projeto](#sobre-o-projeto)
-  - [Objetivos](#objetivos)
-- [Arquitetura e Tecnologias](#arquitetura-e-tecnologias)
-- [Funcionalidades por Perfil](#funcionalidades-por-perfil)
-  - [Orientador (Administrador)](#1-para-orientadores-administradores)
-  - [Mentor (Veterano)](#2-para-mentores)
-  - [Calouro (Ingressante)](#3-para-calouros)
-- [Credenciais do Administrador](#credenciais-do-administrador)
-- [Pre-requisitos](#pre-requisitos)
-- [Instalacao e Execucao](#instalacao-e-execucao)
-  - [Opcao 1: Execucao Local](#opcao-1-execucao-local)
-  - [Opcao 2: Execucao com Docker Compose](#opcao-2-execucao-com-docker-compose)
-- [Documentacao da API REST](#documentacao-da-api-rest)
-- [Estrutura de Diretorios](#estrutura-de-diretorios)
-- [Licenca](#licenca)
+- [Padawan ON](#padawan-on)
+  - [Indice](#indice)
+  - [Sobre o Projeto](#sobre-o-projeto)
+    - [Objetivos](#objetivos)
+  - [Arquitetura e Tecnologias](#arquitetura-e-tecnologias)
+    - [Frontend](#frontend)
+    - [Backend](#backend)
+  - [Funcionalidades por Perfil](#funcionalidades-por-perfil)
+    - [1. Para Orientadores (Super-Admin)](#1-para-orientadores-super-admin)
+    - [2. Para Administradores](#2-para-administradores)
+    - [3. Para Mentores (Veteranos)](#3-para-mentores-veteranos)
+    - [4. Para Calouros (Ingressantes)](#4-para-calouros-ingressantes)
+  - [Cadastro e Credenciais](#cadastro-e-credenciais)
+  - [Pre-requisitos](#pre-requisitos)
+  - [Instalacao e Execucao](#instalacao-e-execucao)
+    - [Opcao 1: Execucao Local](#opcao-1-execucao-local)
+      - [1. Clone o repositorio:](#1-clone-o-repositorio)
+      - [2. Configure e Inicie o Backend:](#2-configure-e-inicie-o-backend)
+      - [3. Configure e Inicie o Frontend:](#3-configure-e-inicie-o-frontend)
+    - [Opcao 2: Execucao com Docker Compose](#opcao-2-execucao-com-docker-compose)
+  - [Documentacao da API REST](#documentacao-da-api-rest)
+    - [Autenticacao (`/api/auth`)](#autenticacao-apiauth)
+    - [Dashboard \& Metricas (`/api/dashboard`)](#dashboard--metricas-apidashboard)
+    - [Mentores (`/api/mentores`)](#mentores-apimentores)
+    - [Calouros (`/api/calouros`)](#calouros-apicalouros)
+    - [Grupos (`/api/grupos`)](#grupos-apigrupos)
+    - [Encontros e Frequencia (`/api/encontros`)](#encontros-e-frequencia-apiencontros)
+    - [Recursos Educacionais (`/api/recursos`)](#recursos-educacionais-apirecursos)
+  - [Estrutura de Diretorios](#estrutura-de-diretorios)
 
 ---
 
@@ -71,40 +85,54 @@ A aplicacao segue uma arquitetura desacoplada entre Frontend e Backend com persi
 
 ## Funcionalidades por Perfil
 
-### 1. Para Orientadores (Administradores)
-- **Dashboard Executivo:** Metricas em tempo real (total de mentores, calouros, grupos ativos, taxa de assiduidade e metas do semestre).
-- **Gerenciamento de Mentores (`/dashboard/mentores`):** Listagem, busca textual, filtro de disponibilidade, cadastro e exclusao de mentores com confirmacao.
-- **Gerenciamento de Calouros (`/dashboard/calouros`):** Listagem completa com identificacao de alunos aguardando mentor ou alocados, cadastro e exclusao.
-- **Formacao de Grupos (`/dashboard/grupos`):** Modal de criacao, associacao de mentor, selecao multipla de calouros e exclusao de grupos.
-- **Agenda e Presenca (`/dashboard/encontros`):** Agendamento de sessoes com registro de presenca e exclusao de encontros.
-- **Biblioteca Educacional (`/dashboard/recursos`):** Curadoria, publicacao e exclusao de materiais de apoio.
-- **Relatorios Consolidados (`/dashboard/relatorios`):** Indicadores do semestre, tabela de rendimento e exportacao/impressao.
-- **Configuracoes Gerais (`/dashboard/configuracoes`):** Ajustes de parametros do programa e semestre vigente.
+A plataforma estrutura-se sobre a seguinte hierarquia estrita de autoridade:
+**Orientador -> Administrador -> Mentor -> Calouro**
 
-### 2. Para Mentores
-- **Painel Personalizado (`/dashboard/mentor`):** Resumo com contagem de alunos sob sua tutela, proximas reunioes e toggle de status (Disponivel / Ocupado).
-- **Meus Calouros (`/dashboard/meus-calouros`):** Informacoes detalhadas dos alunos do grupo com canal direto de contato por e-mail.
-- **Encontros:** Criacao de reunioes para o seu proprio grupo e marcacao de lista de presenca.
-- **Acesso a Recursos:** Consulta e publicacao de materiais de apoio para seus calouros.
+### 1. Para Orientadores (Super-Admin)
+- **Visao Global:** Acesso irrestrito a todos os grupos, mentores e calouros de toda a instituicao.
+- **Formacao de Grupos:** Forma os grupos de mentoria em conjunto com os Administradores e lideres.
+- **Gerenciamento Completo de Usuarios:** Permissao para criar, atualizar e excluir qualquer usuario ou entidade da plataforma (Orientadores, Administradores, Mentores e Calouros).
+- **Relatorios Executivos e Auditoria:** Indicadores gerais, taxas de frequencia de qualquer grupo, log de movimentacoes e exportacao de relatorios nominais e PDF de presenca.
 
-### 3. Para Calouros
-- **Painel do Calouro (`/dashboard/calouro`):** Boas-vindas, informacoes de contato do mentor atribuido e status do grupo.
-- **Meu Mentor (`/dashboard/meu-mentor`):** Perfil do veterano responsavel e botao de contato rapido via e-mail.
-- **Proximos Encontros:** Agenda com data, horario, duracao e local/link da tutoria.
-- **Biblioteca de Estudos (`/dashboard/recursos`):** Acesso a videoaulas, listas de exercicios, apostilas em PDF e links.
-- **Auto-Cadastro (`/cadastro`):** Formulario de registro exclusivo para ingressantes.
+### 2. Para Administradores
+- **Gestao Departamental / Grupos Designados:** Cada grupo de mentoria e gerenciado por um Administrador.
+- **Isolamento de Escopo:** O Administrador visualiza apenas as movimentacoes, sessoes e membros do grupo que gerencia, **sem acesso nem visibilidade a situacao de outros grupos**.
+- **Vinculacao e Relacionamento:** Estabelece a relacao direta entre Calouro e Mentor dentro do seu grupo.
+- **Confirmacao e Acompanhamento:** Confirma encontros de mentoria, lanca feedbacks, mensagens e emite relatorios de frequencia em PDF do seu grupo.
+
+### 3. Para Mentores (Veteranos)
+- **Escopo e Restricao:** Os mentores gerenciam exclusivamente os calouros a quem estao atrelados. **Mentores nao possuem poderes administrativos** (nao criam nem excluem grupos ou outros usuarios).
+- **Vinculo ao Grupo:** O mentor visualiza a situacao e as movimentacoes internas unicamente do grupo no qual esta inserido. O mentor nao pode sair do grupo nem visualizar grupos alheios.
+- **Micro-Chat e Feedbacks:** Interage com seus calouros atraves do Micro-Chat integrado com mensagens livres e acoes rapidas de feedback pre-formatadas ("Preciso falar com voce!", "Como estao os estudos essa semana?", etc.).
+- **Encontros e Presenca:** Conduz as reunioes de tutoria e marca as listas de assiduidade de seus calouros.
+
+### 4. Para Calouros (Ingressantes)
+- **Visualizacao Exclusiva:** O calouro possui acesso restrito unicamente aos seus encontros com o mentor designado e aos materiais da biblioteca. Nao visualiza calouros de outros grupos nem cadastros administrativos.
+- **Micro-Chat com Mentor:** Comunica-se de forma direta com o mentor atraves do Micro-Chat com respostas e feedbacks pre-definidos ("Ola!", "Preciso de ajuda com a materia", "Presenca confirmada!", etc.).
+- **Auto-Cadastro:** Pode realizar seu cadastro inicial informando RA e dados academicos.
 
 ---
 
-## Credenciais do Administrador
+## Sistema de Micro-Chat e Feedbacks Integrados
 
-O banco de dados contem o registro inicial da conta administradora:
+O sistema elimina botoes externos de envio de e-mail e adota um canal de **Micro-Chat em tempo real** entre participantes autorizados:
+- **Feedbacks Rapidos:** Botões de envio com um clique para comunicacoes frequentes:
+  - "Preciso falar com voce!"
+  - "Ola! Como estao os estudos essa semana?"
+  - "Duvida resolvida, obrigado!"
+  - "Confirmado nosso proximo encontro!"
+  - "Preciso de ajuda com uma materia."
+- **Isolamento e Seguranca:** Mensagens sao auditadas e segregadas por remetente, destinatario e grupo de mentoria.
+- **Registro Permanente:** O historico de comunicacoes fica registrado na base de dados relacional.
+
+- **Cadastro Publico (`/cadastro`):** Restrito exclusivamente a **Calouros** e **Mentores**. Administradores e Orientadores sao cadastrados e gerenciados internamente na plataforma.
+- **Credenciais Iniciais:** O banco de dados e inicializado com a conta da orientadora Quezia:
 
 | Papel | Nome | Usuario | E-mail | RA | Senha |
 |---|---|---|---|---|---|
-| **Orientador (Admin)** | Quezia | `quezia` | `quezia@unicap.br` | `2011` | `2011` |
+| **Orientador (Super-Admin)** | Quezia | `quezia` | `quezia@unicap.br` | `2011` | `2011` |
 
-Na tela de login (`/`), o botao de atalho preenche automaticamente as credenciais da administradora Quezia. E possivel realizar o login informando tanto o E-mail quanto o RA.
+O login pode ser realizado informando tanto o E-mail institucional quanto o RA.
 
 ---
 
@@ -188,9 +216,15 @@ Todas as rotas autenticadas requerem o cabecalho HTTP:
 
 ### Dashboard & Metricas (`/api/dashboard`)
 - `GET /api/dashboard/stats`: Indicadores consolidados para Orientadores.
-- `GET /api/dashboard/atividades`: Log recente de eventos da plataforma.
-- `GET /api/dashboard/mentor-resumo`: Resumo analitico do mentor autenticado.
+- `GET /api/dashboard/atividades`: Log recente de eventos da plataforma (filtrado por escopo de grupo para Mentores e Administradores).
+- `GET /api/dashboard/admin-resumo`: Resumo analitico e movimentacoes do grupo do Administrador.
+- `GET /api/dashboard/mentor-resumo`: Resumo analitico, calouros e movimentacoes do grupo do Mentor.
 - `GET /api/dashboard/calouro-resumo`: Resumo das mentorias e reunioes do calouro autenticado.
+
+### Micro-Chat & Mensagens (`/api/mensagens`)
+- `GET /api/mensagens?destinatarioId=:id`: Retorna o historico de mensagens e feedbacks entre os dois usuarios.
+- `GET /api/mensagens?grupoId=:id`: Retorna o historico de comunicacoes associadas a determinado grupo.
+- `POST /api/mensagens`: Envia nova mensagem ou feedback pre-formatado para um membro da equipe.
 
 ### Mentores (`/api/mentores`)
 - `GET /api/mentores`: Lista todos os mentores com contagem de alunos atendidos.
@@ -206,7 +240,7 @@ Todas as rotas autenticadas requerem o cabecalho HTTP:
 - `DELETE /api/calouros/:id`: Remove calouro e limpa participacoes de grupos e presencas.
 
 ### Grupos (`/api/grupos`)
-- `GET /api/grupos`: Lista grupos com mentor e calouros membros.
+- `GET /api/grupos`: Lista grupos (filtrados por escopo administrativo do usuario).
 - `GET /api/grupos/:id/relatorio-frequencia`: Retorna metricas consolidadas, lista de encontros e frequencia nominal dos calouros para emissao de relatorio/PDF.
 - `POST /api/grupos`: Cria grupo, associa mentor e vincula calouros em lote.
 - `POST /api/grupos/:id/calouros`: Adiciona calouro individual ao grupo.
@@ -282,7 +316,3 @@ padawan-on/
 ```
 
 ---
-
-## Licenca
-
-Este projeto e desenvolvido para o programa de extensao universitaria do curso de Ciencia da Computacao da **UNICAP** e e distribuido sob a licenca [MIT](LICENSE).

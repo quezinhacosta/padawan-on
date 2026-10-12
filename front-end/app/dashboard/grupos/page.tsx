@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, Plus, Trash2, Calendar, UserCheck, FileText, Download, Printer } from "lucide-react"
+import { Users, Plus, Trash2, Calendar, UserCheck, FileText, Download, Printer, MessageSquare } from "lucide-react"
+import MicroChatModal from "../../components/MicroChatModal"
 
 interface CalouroMembro {
   calouro_id: number
+  usuario_id?: number
   nome: string
   ra: string
   email: string
@@ -14,8 +16,10 @@ interface Grupo {
   id: number
   nome: string
   mentor_id: number | null
+  mentor_usuario_id?: number | null
   mentor_nome: string | null
   mentor_email: string | null
+  admin_nome?: string | null
   status: "ATIVO" | "PENDENTE" | "FINALIZADO"
   descricao: string
   data_criacao: string
@@ -36,23 +40,38 @@ interface CalouroOption {
   grupo_id: number | null
 }
 
+interface AdminOption {
+  id: number
+  nome: string
+}
+
 export default function GruposPage() {
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const [grupos, setGrupos] = useState<Grupo[]>([])
   const [mentores, setMentores] = useState<MentorOption[]>([])
+  const [administradores, setAdministradores] = useState<AdminOption[]>([])
   const [calourosDisponiveis, setCalourosDisponiveis] = useState<CalouroOption[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [erro, setErro] = useState("")
+  const [chatTarget, setChatTarget] = useState<{ id: number; nome: string; role: string; grupoId: number } | null>(null)
 
   const [formData, setFormData] = useState({
     nome: "",
     mentorId: "",
+    adminId: "",
     descricao: "",
     calouroIds: [] as number[]
   })
 
   useEffect(() => {
+    const stored = localStorage.getItem("user")
+    if (stored) {
+      try {
+        setCurrentUser(JSON.parse(stored))
+      } catch (e) {}
+    }
     carregarDados()
   }, [])
 
@@ -78,6 +97,12 @@ export default function GruposPage() {
       if (resMentores.ok) {
         const data = await resMentores.json()
         setMentores(data)
+      }
+
+      const resUsuarios = await fetch('/api/usuarios?role=ADMINISTRADOR', { headers })
+      if (resUsuarios.ok) {
+        const dataU = await resUsuarios.json()
+        setAdministradores(dataU.map((u: any) => ({ id: u.id, nome: u.nome_completo })))
       }
 
       const resCalouros = await fetch('/api/calouros', { headers })
@@ -122,6 +147,7 @@ export default function GruposPage() {
         body: JSON.stringify({
           nome: formData.nome,
           mentorId: formData.mentorId ? Number(formData.mentorId) : null,
+          adminId: formData.adminId ? Number(formData.adminId) : null,
           descricao: formData.descricao,
           calouroIds: formData.calouroIds
         })
@@ -137,6 +163,7 @@ export default function GruposPage() {
       setFormData({
         nome: "",
         mentorId: "",
+        adminId: "",
         descricao: "",
         calouroIds: []
       })
@@ -406,33 +433,37 @@ export default function GruposPage() {
       }}>
         <div>
           <h1 style={{ fontSize: "26px", fontWeight: "bold", color: "white" }}>
-            Gerenciar Grupos de Mentoria
+            {currentUser?.tipo === "ADMINISTRADOR" ? "Meu Grupo de Mentoria" : "Gerenciar Grupos de Mentoria"}
           </h1>
           <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px", fontSize: "14px" }}>
-            Crie novos grupos, vincule mentores e aloque os calouros do programa
+            {currentUser?.tipo === "ADMINISTRADOR"
+              ? "Gerencie os membros, mentores e calouros sob sua administração direta"
+              : "Crie novos grupos com administradores, vincule mentores e aloque calouros do programa"}
           </p>
         </div>
-        <button
-          onClick={() => {
-            setErro("")
-            setShowModal(true)
-          }}
-          style={{
-            padding: "10px 20px",
-            borderRadius: "10px",
-            background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
-            color: "black",
-            fontWeight: "600",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "13px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px"
-          }}
-        >
-          <Plus size={16} /> Formar Novo Grupo
-        </button>
+        {currentUser?.tipo === "ORIENTADOR" && (
+          <button
+            onClick={() => {
+              setErro("")
+              setShowModal(true)
+            }}
+            style={{
+              padding: "10px 20px",
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
+              color: "black",
+              fontWeight: "600",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "13px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
+            }}
+          >
+            <Plus size={16} /> Formar Novo Grupo
+          </button>
+        )}
       </div>
 
       {isLoading ? (
@@ -477,9 +508,41 @@ export default function GruposPage() {
                   <h3 style={{ color: "white", fontSize: "17px", fontWeight: "600" }}>
                     {grupo.nome}
                   </h3>
-                  <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", marginTop: "4px" }}>
-                    Mentor: <span style={{ color: "#d3fc72" }}>{grupo.mentor_nome || "Não atribuído"}</span>
-                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", margin: 0 }}>
+                      Mentor: <span style={{ color: "#d3fc72" }}>{grupo.mentor_nome || "Não atribuído"}</span>
+                    </p>
+                    {grupo.mentor_usuario_id && (
+                      <button
+                        onClick={() => setChatTarget({
+                          id: grupo.mentor_usuario_id!,
+                          nome: grupo.mentor_nome || "Mentor",
+                          role: "MENTOR",
+                          grupoId: grupo.id
+                        })}
+                        style={{
+                          padding: "2px 6px",
+                          borderRadius: "6px",
+                          background: "rgba(211,252,114,0.12)",
+                          border: "1px solid rgba(211,252,114,0.3)",
+                          color: "#d3fc72",
+                          fontSize: "11px",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px"
+                        }}
+                        title="Abrir Micro-Chat com Mentor"
+                      >
+                        <MessageSquare size={11} /> Chat
+                      </button>
+                    )}
+                  </div>
+                  {grupo.admin_nome && (
+                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", marginTop: "2px" }}>
+                      Administrador: <span style={{ color: "white" }}>{grupo.admin_nome}</span>
+                    </p>
+                  )}
                   {grupo.descricao && (
                     <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", marginTop: "4px" }}>
                       {grupo.descricao}
@@ -514,9 +577,34 @@ export default function GruposPage() {
                         borderRadius: "8px",
                         background: "rgba(255,255,255,0.06)",
                         fontSize: "11px",
-                        color: "rgba(255,255,255,0.8)"
+                        color: "rgba(255,255,255,0.8)",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "5px"
                       }}>
                         {calouro.nome}
+                        {calouro.usuario_id && (
+                          <button
+                            onClick={() => setChatTarget({
+                              id: calouro.usuario_id!,
+                              nome: calouro.nome,
+                              role: "CALOURO",
+                              grupoId: grupo.id
+                            })}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "#d3fc72",
+                              cursor: "pointer",
+                              padding: "0 2px",
+                              display: "inline-flex",
+                              alignItems: "center"
+                            }}
+                            title={`Abrir Micro-Chat com ${calouro.nome}`}
+                          >
+                            <MessageSquare size={10} />
+                          </button>
+                        )}
                       </span>
                     ))}
                   </div>
@@ -561,24 +649,26 @@ export default function GruposPage() {
                   >
                     <FileText size={13} /> Relatório PDF
                   </button>
-                  <button
-                    onClick={() => handleExcluirGrupo(grupo.id, grupo.nome)}
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: "8px",
-                      background: "rgba(255,0,0,0.1)",
-                      border: "1px solid rgba(255,0,0,0.2)",
-                      color: "#ff6b6b",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      fontSize: "12px"
-                    }}
-                    title="Excluir Grupo"
-                  >
-                    <Trash2 size={13} /> Excluir
-                  </button>
+                  {currentUser?.tipo === "ORIENTADOR" && (
+                    <button
+                      onClick={() => handleExcluirGrupo(grupo.id, grupo.nome)}
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: "8px",
+                        background: "rgba(255,0,0,0.1)",
+                        border: "1px solid rgba(255,0,0,0.2)",
+                        color: "#ff6b6b",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "12px"
+                      }}
+                      title="Excluir Grupo"
+                    >
+                      <Trash2 size={13} /> Excluir
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -652,6 +742,35 @@ export default function GruposPage() {
                   required
                 />
               </div>
+
+              {currentUser?.role === 'ORIENTADOR' && administradores.length > 0 && (
+                <div>
+                  <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
+                    Administrador / Líder do Grupo
+                  </label>
+                  <select
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      borderRadius: "8px",
+                      background: "#1a1a1a",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "white",
+                      fontSize: "13px",
+                      outline: "none"
+                    }}
+                    value={formData.adminId}
+                    onChange={(e) => setFormData({ ...formData, adminId: e.target.value })}
+                  >
+                    <option value="">Atribuir administrador...</option>
+                    {administradores.map((adm) => (
+                      <option key={adm.id} value={adm.id}>
+                        {adm.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", display: "block", marginBottom: "4px" }}>
@@ -783,6 +902,16 @@ export default function GruposPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {chatTarget && (
+        <MicroChatModal
+          onClose={() => setChatTarget(null)}
+          destinatarioId={chatTarget.id}
+          destinatarioNome={chatTarget.nome}
+          destinatarioRole={chatTarget.role}
+          grupoId={chatTarget.grupoId}
+        />
       )}
     </div>
   )

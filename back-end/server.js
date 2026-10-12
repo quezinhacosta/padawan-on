@@ -24,6 +24,7 @@ const grupoRoutes = require('./src/routes/grupoRoutes');
 const encontroRoutes = require('./src/routes/encontroRoutes');
 const recursoRoutes = require('./src/routes/recursoRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
+const mensagemRoutes = require('./src/routes/mensagemRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuarioRoutes);
@@ -33,6 +34,7 @@ app.use('/api/grupos', grupoRoutes);
 app.use('/api/encontros', encontroRoutes);
 app.use('/api/recursos', recursoRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/mensagens', mensagemRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ 

@@ -17,7 +17,14 @@ router.use(autenticarToken);
 
 router.get('/', (req, res) => {
   try {
-    const grupos = getAllGrupos();
+    let grupos;
+    if (req.usuario.role === 'ADMINISTRADOR') {
+      grupos = getAllGrupos({ adminId: req.usuario.id });
+    } else if (req.usuario.role === 'MENTOR') {
+      grupos = getAllGrupos({ mentorId: req.usuario.id });
+    } else {
+      grupos = getAllGrupos();
+    }
     res.json(grupos);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar grupos', message: error.message });
@@ -26,6 +33,16 @@ router.get('/', (req, res) => {
 
 router.get('/:id/relatorio-frequencia', (req, res) => {
   try {
+    if (req.usuario.role === 'ADMINISTRADOR') {
+      const g = getGrupoById(req.params.id);
+      if (!g || (g.admin_id && g.admin_id !== req.usuario.id)) {
+        const adminObj = getAdministradorByUsuarioId(req.usuario.id);
+        if (!adminObj || g.admin_id !== adminObj.id) {
+          return res.status(403).json({ error: 'Acesso negado aos relatórios deste grupo' });
+        }
+      }
+    }
+
     const relatorio = getGrupoRelatorioFrequencia(req.params.id);
     if (!relatorio) {
       return res.status(404).json({ error: 'Grupo não encontrado' });
@@ -42,24 +59,34 @@ router.get('/:id', (req, res) => {
     if (!grupo) {
       return res.status(404).json({ error: 'Grupo não encontrado' });
     }
+    if (req.usuario.role === 'ADMINISTRADOR') {
+      const adminObj = getAdministradorByUsuarioId(req.usuario.id);
+      if (grupo.admin_id && adminObj && grupo.admin_id !== adminObj.id) {
+        return res.status(403).json({ error: 'Acesso restrito ao grupo atribuído' });
+      }
+    }
     res.json(grupo);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao obter grupo', message: error.message });
   }
 });
 
-router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.post('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
-    const { nome, mentorId, descricao, calouroIds = [] } = req.body;
+    const { nome, mentorId, adminId, descricao, calouroIds = [] } = req.body;
 
     if (!nome) {
       return res.status(400).json({ error: 'O nome do grupo é obrigatório' });
     }
 
+    const effectiveAdminId = req.usuario.role === 'ADMINISTRADOR' ? req.usuario.id : (adminId || null);
+    const effectiveOrientadorId = req.usuario.role === 'ORIENTADOR' ? req.usuario.id : null;
+
     const grupoRes = createGrupo({
       nome,
       mentorId: mentorId ? Number(mentorId) : null,
-      orientadorId: req.usuario.id,
+      orientadorId: effectiveOrientadorId,
+      adminId: effectiveAdminId,
       descricao: descricao || '',
       status: 'ATIVO'
     });
@@ -88,12 +115,13 @@ router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
   }
 });
 
-router.put('/:id', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
+router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR', 'MENTOR'), (req, res) => {
   try {
-    const { nome, mentorId, descricao, status } = req.body;
+    const { nome, mentorId, adminId, descricao, status } = req.body;
     updateGrupo(req.params.id, {
       nome,
       mentorId: mentorId ? Number(mentorId) : undefined,
+      adminId: adminId ? Number(adminId) : undefined,
       descricao,
       status
     });
@@ -104,7 +132,7 @@ router.put('/:id', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
   }
 });
 
-router.post('/:id/calouros', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.post('/:id/calouros', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     const { calouroId } = req.body;
     if (!calouroId) {
@@ -118,7 +146,7 @@ router.post('/:id/calouros', autorizarRoles('ORIENTADOR'), (req, res) => {
   }
 });
 
-router.delete('/:id/calouros/:calouroId', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.delete('/:id/calouros/:calouroId', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     removeCalouroFromGrupo(req.params.id, req.params.calouroId);
     res.json({ success: true, message: 'Calouro removido do grupo com sucesso' });
@@ -127,7 +155,7 @@ router.delete('/:id/calouros/:calouroId', autorizarRoles('ORIENTADOR'), (req, re
   }
 });
 
-router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.delete('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     deleteGrupo(req.params.id);
     logAtividade({

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     email TEXT UNIQUE NOT NULL,
     ra TEXT UNIQUE NOT NULL,
     senha_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('ORIENTADOR', 'MENTOR', 'CALOURO')),
+    role TEXT NOT NULL CHECK (role IN ('ORIENTADOR', 'ADMINISTRADOR', 'MENTOR', 'CALOURO')),
     foto_perfil TEXT,
     ativo INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -37,8 +37,15 @@ CREATE TABLE IF NOT EXISTS calouros (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-
 CREATE TABLE IF NOT EXISTS orientadores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER UNIQUE REFERENCES usuarios(id) ON DELETE CASCADE,
+    departamento TEXT,
+    cargo TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS administradores (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     usuario_id INTEGER UNIQUE REFERENCES usuarios(id) ON DELETE CASCADE,
     departamento TEXT,
@@ -52,6 +59,7 @@ CREATE TABLE IF NOT EXISTS grupos (
     nome TEXT NOT NULL,
     mentor_id INTEGER REFERENCES mentores(id) ON DELETE SET NULL,
     orientador_id INTEGER REFERENCES orientadores(id) ON DELETE SET NULL,
+    admin_id INTEGER REFERENCES administradores(id) ON DELETE SET NULL,
     status TEXT DEFAULT 'PENDENTE',
     descricao TEXT,
     data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -85,6 +93,16 @@ CREATE TABLE IF NOT EXISTS encontros (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS encontros_calouros (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    encontro_id INTEGER REFERENCES encontros(id) ON DELETE CASCADE,
+    calouro_id INTEGER REFERENCES calouros(id) ON DELETE CASCADE,
+    status TEXT DEFAULT 'PENDENTE' CHECK (status IN ('PENDENTE', 'ACEITO', 'RECUSADO')),
+    resposta_em DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(encontro_id, calouro_id)
+);
+
 -- 8. FREQUENCIA
 CREATE TABLE IF NOT EXISTS frequencia (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,6 +112,28 @@ CREATE TABLE IF NOT EXISTS frequencia (
     observacao TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(encontro_id, calouro_id)
+);
+
+CREATE TABLE IF NOT EXISTS feedbacks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    encontro_id INTEGER REFERENCES encontros(id) ON DELETE CASCADE,
+    autor_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+    destinatario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+    tipo TEXT NOT NULL CHECK (tipo IN ('CALOURO_PARA_MENTOR', 'MENTOR_PARA_CALOURO', 'GERAL')),
+    nota INTEGER,
+    comentario TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS mensagens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    grupo_id INTEGER REFERENCES grupos(id) ON DELETE CASCADE,
+    remetente_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+    destinatario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+    conteudo TEXT NOT NULL,
+    tipo TEXT DEFAULT 'CHAT',
+    lida INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS atividades (
@@ -116,7 +156,6 @@ CREATE TABLE IF NOT EXISTS recursos (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-
 
 CREATE INDEX IF NOT EXISTS idx_usuarios_role ON usuarios(role);
 CREATE INDEX IF NOT EXISTS idx_usuarios_email ON usuarios(email);

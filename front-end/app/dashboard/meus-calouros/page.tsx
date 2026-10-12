@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, Mail, IdCard, Send } from "lucide-react"
+import { Users, Mail, IdCard, MessageSquare } from "lucide-react"
+import MicroChatModal from "../../components/MicroChatModal"
 
 interface Calouro {
   id: number
@@ -12,12 +13,14 @@ interface Calouro {
   periodo: string
   grupo_nome: string
   grupo_id: number
+  usuario_id?: number
 }
 
 export default function MeusCalourosPage() {
   const [calouros, setCalouros] = useState<Calouro[]>([])
   const [mentor, setMentor] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [chatCalouro, setChatCalouro] = useState<Calouro | null>(null)
 
   useEffect(() => {
     carregarMeusCalouros()
@@ -140,8 +143,8 @@ export default function MeusCalourosPage() {
                 </p>
               </div>
 
-              <a
-                href={`mailto:${calouro.email}?subject=Mentoria UNICAP - Contato`}
+              <button
+                onClick={() => setChatCalouro(calouro)}
                 style={{
                   marginTop: "auto",
                   padding: "10px",
@@ -149,8 +152,7 @@ export default function MeusCalourosPage() {
                   background: "rgba(211,252,114,0.1)",
                   border: "1px solid rgba(211,252,114,0.25)",
                   color: "#d3fc72",
-                  textAlign: "center",
-                  textDecoration: "none",
+                  cursor: "pointer",
                   fontSize: "13px",
                   fontWeight: "500",
                   display: "flex",
@@ -159,11 +161,21 @@ export default function MeusCalourosPage() {
                   gap: "6px"
                 }}
               >
-                <Send size={14} /> Enviar E-mail
-              </a>
+                <MessageSquare size={14} /> Abrir Micro-Chat
+              </button>
             </div>
           ))}
         </div>
+      )}
+
+      {chatCalouro && (
+        <MicroChatModal
+          destinatarioId={chatCalouro.usuario_id || chatCalouro.id}
+          destinatarioNome={chatCalouro.nome}
+          destinatarioRole="Calouro"
+          grupoId={chatCalouro.grupo_id}
+          onClose={() => setChatCalouro(null)}
+        />
       )}
     </div>
   )

@@ -48,6 +48,8 @@ interface AtividadeItem {
 
 export default function DashboardHome() {
   const router = useRouter()
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [adminResumo, setAdminResumo] = useState<any>(null)
   const [stats, setStats] = useState<DashboardStats>({
     totalMentores: 0,
     totalCalouros: 0,
@@ -63,6 +65,12 @@ export default function DashboardHome() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    const stored = localStorage.getItem("user")
+    if (stored) {
+      try {
+        setCurrentUser(JSON.parse(stored))
+      } catch (e) {}
+    }
     carregarDados()
   }, [])
 
@@ -73,6 +81,17 @@ export default function DashboardHome() {
     if (token) headers["Authorization"] = `Bearer ${token}`
 
     try {
+      const stored = localStorage.getItem("user")
+      const parsedUser = stored ? JSON.parse(stored) : null
+
+      if (parsedUser?.role === "ADMINISTRADOR") {
+        const resAdmin = await fetch('/api/dashboard/admin-resumo', { headers })
+        if (resAdmin.ok) {
+          const dataAdmin = await resAdmin.json()
+          setAdminResumo(dataAdmin)
+        }
+      }
+
       const resStats = await fetch('/api/dashboard/stats', { headers })
       if (resStats.ok) {
         const dataStats = await resStats.json()
@@ -108,10 +127,12 @@ export default function DashboardHome() {
       }}>
         <div>
           <h1 style={{ fontSize: "26px", fontWeight: "bold", color: "white" }}>
-            Visão Geral do Programa
+            {currentUser?.role === "ADMINISTRADOR" ? "Painel de Administração do Grupo" : "Visão Geral do Programa"}
           </h1>
           <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px", fontSize: "14px" }}>
-            Métricas em tempo real e monitoramento do programa de apadrinhamento UNICAP
+            {currentUser?.role === "ADMINISTRADOR" 
+              ? "Gestão do seu grupo de mentoria, calouros vinculados, encontros e comunicações" 
+              : "Métricas em tempo real e monitoramento do programa de apadrinhamento UNICAP"}
           </p>
         </div>
         <button
@@ -133,6 +154,65 @@ export default function DashboardHome() {
         </button>
       </div>
 
+      {currentUser?.role === "ADMINISTRADOR" && (
+        <div style={{
+          background: "rgba(255,255,255,0.03)",
+          borderRadius: "16px",
+          padding: "20px 24px",
+          border: "1px solid rgba(255,255,255,0.05)",
+          marginBottom: "24px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "16px"
+        }}>
+          <div>
+            <span style={{ fontSize: "11px", textTransform: "uppercase", color: "#60a5fa", fontWeight: "600", letterSpacing: "1px" }}>
+              Grupo Sob Sua Gestão
+            </span>
+            <h2 style={{ color: "white", fontSize: "20px", fontWeight: "bold", marginTop: "2px" }}>
+              {adminResumo?.grupoAtivo?.nome || "Nenhum grupo atribuído ainda"}
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", marginTop: "2px" }}>
+              {adminResumo?.grupoAtivo?.descricao || "Aguardando designação de grupo pelo Orientador Geral."}
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button
+              onClick={() => router.push("/dashboard/grupos")}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: "rgba(96,165,250,0.15)",
+                border: "1px solid rgba(96,165,250,0.3)",
+                color: "#60a5fa",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "12px"
+              }}
+            >
+              Gerenciar Membros
+            </button>
+            <button
+              onClick={() => router.push("/dashboard/encontros")}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
+                border: "none",
+                color: "black",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "12px"
+              }}
+            >
+              Agendar Encontro
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -141,30 +221,30 @@ export default function DashboardHome() {
       }}>
         <StatCard
           icon={<UserCheck size={22} color="#5531cc" />}
-          label="Mentores"
-          value={stats.totalMentores}
-          detail={`${stats.mentoresDisponiveis} disponíveis`}
+          label={currentUser?.role === "ADMINISTRADOR" ? "Mentor do Grupo" : "Mentores"}
+          value={currentUser?.role === "ADMINISTRADOR" ? (adminResumo?.grupoAtivo?.mentor_nome ? 1 : 0) : stats.totalMentores}
+          detail={currentUser?.role === "ADMINISTRADOR" ? (adminResumo?.grupoAtivo?.mentor_nome || "Não atribuído") : `${stats.mentoresDisponiveis} disponíveis`}
           color="#5531cc"
         />
         <StatCard
           icon={<Users size={22} color="#d3fc72" />}
-          label="Calouros"
-          value={stats.totalCalouros}
-          detail={`${stats.calourosSemGrupo} sem grupo`}
+          label={currentUser?.role === "ADMINISTRADOR" ? "Calouros no Grupo" : "Calouros"}
+          value={currentUser?.role === "ADMINISTRADOR" ? (adminResumo?.totalCalouros || 0) : stats.totalCalouros}
+          detail={currentUser?.role === "ADMINISTRADOR" ? "Sob sua administração" : `${stats.calourosSemGrupo} sem grupo`}
           color="#d3fc72"
         />
         <StatCard
           icon={<Users size={22} color="#a78bfa" />}
-          label="Grupos Ativos"
-          value={stats.gruposAtivos}
-          detail={`${stats.totalGrupos} cadastrados`}
+          label={currentUser?.role === "ADMINISTRADOR" ? "Status do Grupo" : "Grupos Ativos"}
+          value={currentUser?.role === "ADMINISTRADOR" ? (adminResumo?.grupoAtivo?.status || "PENDENTE") : stats.gruposAtivos}
+          detail={currentUser?.role === "ADMINISTRADOR" ? `${adminResumo?.grupos?.length || 0} grupo sob gestão` : `${stats.totalGrupos} cadastrados`}
           color="#a78bfa"
         />
         <StatCard
           icon={<Calendar size={22} color="#4ecdc4" />}
-          label="Taxa de Frequência"
-          value={`${stats.taxaSucesso}%`}
-          detail={`${stats.encontrosHoje} encontros hoje`}
+          label={currentUser?.role === "ADMINISTRADOR" ? "Encontros Realizados" : "Taxa de Frequência"}
+          value={currentUser?.role === "ADMINISTRADOR" ? (adminResumo?.encontrosRealizados?.length || 0) : `${stats.taxaSucesso}%`}
+          detail={currentUser?.role === "ADMINISTRADOR" ? `${adminResumo?.encontrosAgendados?.length || 0} agendados` : `${stats.encontrosHoje} encontros hoje`}
           color="#4ecdc4"
         />
       </div>
@@ -228,22 +308,22 @@ export default function DashboardHome() {
       }}>
         <QuickAction
           icon={<UserCheck size={24} color="#a78bfa" />}
-          title="Gerenciar Mentores"
-          description="Visualizar e adicionar mentores"
+          title={currentUser?.role === "ADMINISTRADOR" ? "Consultar Mentores" : "Gerenciar Mentores"}
+          description={currentUser?.role === "ADMINISTRADOR" ? "Visualizar mentores do programa" : "Visualizar e gerenciar mentores"}
           onClick={() => router.push("/dashboard/mentores")}
           color="#5531cc"
         />
         <QuickAction
           icon={<Users size={24} color="#d3fc72" />}
-          title="Gerenciar Calouros"
-          description="Acompanhar alunos ingressantes"
+          title={currentUser?.role === "ADMINISTRADOR" ? "Calouros do Grupo" : "Gerenciar Calouros"}
+          description={currentUser?.role === "ADMINISTRADOR" ? "Acompanhar calouros alocados" : "Acompanhar alunos ingressantes"}
           onClick={() => router.push("/dashboard/calouros")}
           color="#d3fc72"
         />
         <QuickAction
           icon={<LayoutDashboard size={24} color="#ff8787" />}
-          title="Formar Grupos"
-          description="Criar e gerenciar equipes"
+          title={currentUser?.role === "ADMINISTRADOR" ? "Meu Grupo" : "Formar Grupos"}
+          description={currentUser?.role === "ADMINISTRADOR" ? "Administrar membros e mentor" : "Criar e gerenciar equipes"}
           onClick={() => router.push("/dashboard/grupos")}
           color="#ff6b6b"
         />

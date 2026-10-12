@@ -21,6 +21,8 @@ import {
   MessageSquare
 } from "lucide-react"
 
+import MicroChatModal from "../../components/MicroChatModal"
+
 interface CalouroSummary {
   calouro: {
     id: number
@@ -30,10 +32,13 @@ interface CalouroSummary {
     periodo: string
   }
   mentor: {
+    id: number
+    usuarioId?: number
     nome: string
     email: string
     disponivel: boolean
   } | null
+  grupoId?: number | null
   grupoNome: string | null
   encontrosCount: number
   encontrosRealizadosCount: number
@@ -58,6 +63,7 @@ export default function CalouroDashboard() {
   const [feedbackNota, setFeedbackNota] = useState(5)
   const [feedbackEnviando, setFeedbackEnviando] = useState(false)
   const [mensagemSucesso, setMensagemSucesso] = useState("")
+  const [showChat, setShowChat] = useState(false)
 
   useEffect(() => {
     carregarDados()
@@ -181,24 +187,25 @@ export default function CalouroDashboard() {
         </div>
 
         {data?.mentor && (
-          <a
-            href={`mailto:${data.mentor.email}?subject=Mentoria Padawan ON - Dúvida`}
+          <button
+            onClick={() => setShowChat(true)}
             style={{
               padding: "10px 20px",
               borderRadius: "12px",
-              background: "linear-gradient(135deg, #5531cc, #3d1f99)",
-              color: "white",
+              background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
+              color: "black",
               fontWeight: "600",
-              textDecoration: "none",
+              border: "none",
+              cursor: "pointer",
               fontSize: "14px",
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              boxShadow: "0 0 25px rgba(85,49,204,0.3)"
+              boxShadow: "0 0 25px rgba(211,252,114,0.2)"
             }}
           >
-            <Mail size={16} /> Contatar Mentor
-          </a>
+            <MessageSquare size={16} /> Micro-Chat com Mentor
+          </button>
         )}
       </div>
 
@@ -664,6 +671,16 @@ export default function CalouroDashboard() {
           ))}
         </div>
       </div>
+
+      {showChat && data?.mentor && (
+        <MicroChatModal
+          destinatarioId={data.mentor.usuarioId || data.mentor.id}
+          destinatarioNome={data.mentor.nome}
+          destinatarioRole="Mentor"
+          grupoId={data.grupoId || null}
+          onClose={() => setShowChat(false)}
+        />
+      )}
     </div>
   )
 }

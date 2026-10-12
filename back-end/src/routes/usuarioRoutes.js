@@ -12,7 +12,7 @@ const { autenticarToken, autorizarRoles } = require('../middleware/auth');
 
 router.use(autenticarToken);
 
-router.get('/', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.get('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     const { role } = req.query;
     const usuarios = getAllUsuarios(role);
@@ -34,7 +34,7 @@ router.get('/:id', (req, res) => {
   }
 });
 
-router.put('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     const { nomeCompleto, nomeUsuario, email, fotoPerfil, ativo, novaSenha } = req.body;
     let senhaHash = undefined;
@@ -65,7 +65,7 @@ router.put('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
   }
 });
 
-router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.delete('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     deleteUsuario(req.params.id);
     logAtividade({
