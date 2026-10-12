@@ -33,6 +33,7 @@ interface GrupoOption {
 }
 
 export default function EncontrosPage() {
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const [encontros, setEncontros] = useState<Encontro[]>([])
   const [grupos, setGrupos] = useState<GrupoOption[]>([])
   const [filtroStatus, setFiltroStatus] = useState("")
@@ -55,6 +56,12 @@ export default function EncontrosPage() {
   const [frequenciaRegistros, setFrequenciaRegistros] = useState<{ calouroId: number; presente: number; observacao: string }[]>([])
 
   useEffect(() => {
+    const stored = localStorage.getItem("user")
+    if (stored) {
+      try {
+        setCurrentUser(JSON.parse(stored))
+      } catch (e) {}
+    }
     carregarDados()
   }, [])
 
@@ -217,27 +224,29 @@ export default function EncontrosPage() {
             Agende reuniões de mentoria, controle a assiduidade e registre temas abordados
           </p>
         </div>
-        <button
-          onClick={() => {
-            setErro("")
-            setShowModalAgendar(true)
-          }}
-          style={{
-            padding: "10px 20px",
-            borderRadius: "10px",
-            background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
-            color: "black",
-            fontWeight: "600",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "13px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px"
-          }}
-        >
-          <Plus size={16} /> Agendar Novo Encontro
-        </button>
+        {currentUser?.role !== "CALOURO" && (
+          <button
+            onClick={() => {
+              setErro("")
+              setShowModalAgendar(true)
+            }}
+            style={{
+              padding: "10px 20px",
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #d3fc72, #a8e04a)",
+              color: "black",
+              fontWeight: "600",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "13px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
+            }}
+          >
+            <Plus size={16} /> Agendar Novo Encontro
+          </button>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
@@ -329,44 +338,46 @@ export default function EncontrosPage() {
                 )}
               </div>
 
-              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <button
-                  onClick={() => abrirModalFrequencia(enc.id)}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(211,252,114,0.1)",
-                    border: "1px solid rgba(211,252,114,0.25)",
-                    color: "#d3fc72",
-                    fontSize: "12px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px"
-                  }}
-                >
-                  <ClipboardCheck size={14} /> Presença
-                </button>
-                <button
-                  onClick={() => handleExcluirEncontro(enc.id, enc.titulo)}
-                  style={{
-                    padding: "6px 10px",
-                    borderRadius: "8px",
-                    background: "rgba(255,0,0,0.1)",
-                    border: "1px solid rgba(255,0,0,0.2)",
-                    color: "#ff6b6b",
-                    fontSize: "12px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px"
-                  }}
-                  title="Excluir Encontro"
-                >
-                  <Trash2 size={14} /> Excluir
-                </button>
-              </div>
+              {currentUser?.role !== "CALOURO" && (
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <button
+                    onClick={() => abrirModalFrequencia(enc.id)}
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "8px",
+                      background: "rgba(211,252,114,0.1)",
+                      border: "1px solid rgba(211,252,114,0.25)",
+                      color: "#d3fc72",
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px"
+                    }}
+                  >
+                    <ClipboardCheck size={14} /> Presença
+                  </button>
+                  <button
+                    onClick={() => handleExcluirEncontro(enc.id, enc.titulo)}
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: "8px",
+                      background: "rgba(255,0,0,0.1)",
+                      border: "1px solid rgba(255,0,0,0.2)",
+                      color: "#ff6b6b",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                    title="Excluir Encontro"
+                  >
+                    <Trash2 size={14} /> Excluir
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

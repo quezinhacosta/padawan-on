@@ -2,7 +2,24 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { User, Users, Calendar, BookOpen, Star, Mail, MapPin, ExternalLink, ArrowRight, Video, FileText, PenTool, Link as LinkIcon } from "lucide-react"
+import { 
+  User, 
+  Users, 
+  Calendar, 
+  BookOpen, 
+  Star, 
+  Mail, 
+  MapPin, 
+  ExternalLink, 
+  ArrowRight, 
+  Video, 
+  FileText, 
+  PenTool, 
+  Link as LinkIcon,
+  CheckCircle,
+  XCircle,
+  MessageSquare
+} from "lucide-react"
 
 interface CalouroSummary {
   calouro: {
@@ -36,6 +53,11 @@ export default function CalouroDashboard() {
   const [data, setData] = useState<CalouroSummary | null>(null)
   const [recursos, setRecursos] = useState<Recurso[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [modalFeedback, setModalFeedback] = useState<{ encontroId: number; titulo: string } | null>(null)
+  const [feedbackComentario, setFeedbackComentario] = useState("")
+  const [feedbackNota, setFeedbackNota] = useState(5)
+  const [feedbackEnviando, setFeedbackEnviando] = useState(false)
+  const [mensagemSucesso, setMensagemSucesso] = useState("")
 
   useEffect(() => {
     carregarDados()
@@ -68,6 +90,51 @@ export default function CalouroDashboard() {
       console.error(err)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleResponderConvite = async (encontroId: number, status: "ACEITO" | "RECUSADO") => {
+    try {
+      const res = await fetch(`/api/encontros/${encontroId}/resposta`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({ status })
+      })
+      if (res.ok) {
+        setMensagemSucesso(`Convite marcado como: ${status}`)
+        carregarDados()
+        setTimeout(() => setMensagemSucesso(""), 4000)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const handleEnviarFeedback = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!modalFeedback || !feedbackComentario.trim()) return
+
+    setFeedbackEnviando(true)
+    try {
+      const res = await fetch(`/api/encontros/${modalFeedback.encontroId}/feedback`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          tipo: "CALOURO_PARA_MENTOR",
+          nota: feedbackNota,
+          comentario: feedbackComentario.trim()
+        })
+      })
+      if (res.ok) {
+        setMensagemSucesso("Feedback enviado com sucesso!")
+        setModalFeedback(null)
+        setFeedbackComentario("")
+        setTimeout(() => setMensagemSucesso(""), 4000)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setFeedbackEnviando(false)
     }
   }
 
@@ -315,21 +382,220 @@ export default function CalouroDashboard() {
                     </p>
                   )}
                 </div>
-                <span style={{
-                  padding: "4px 12px",
-                  borderRadius: "12px",
-                  fontSize: "12px",
-                  fontWeight: "500",
-                  background: "rgba(211,252,114,0.15)",
-                  color: "#d3fc72"
-                }}>
-                  Confirmado
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  <span style={{
+                    padding: "4px 10px",
+                    borderRadius: "10px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    background: encontro.status_convite === "ACEITO" 
+                      ? "rgba(211,252,114,0.15)" 
+                      : encontro.status_convite === "RECUSADO"
+                      ? "rgba(255,107,107,0.15)"
+                      : "rgba(255,255,255,0.08)",
+                    color: encontro.status_convite === "ACEITO" 
+                      ? "#d3fc72" 
+                      : encontro.status_convite === "RECUSADO"
+                      ? "#ff6b6b"
+                      : "rgba(255,255,255,0.6)"
+                  }}>
+                    {encontro.status_convite === "ACEITO" ? "Presença Confirmada" :
+                     encontro.status_convite === "RECUSADO" ? "Recusado" :
+                     "Convite Pendente"}
+                  </span>
+
+                  <button
+                    onClick={() => handleResponderConvite(encontro.id, "ACEITO")}
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: "8px",
+                      background: "rgba(211,252,114,0.1)",
+                      border: "1px solid rgba(211,252,114,0.3)",
+                      color: "#d3fc72",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                    title="Aceitar Convite"
+                  >
+                    <CheckCircle size={14} /> Aceitar
+                  </button>
+
+                  <button
+                    onClick={() => handleResponderConvite(encontro.id, "RECUSADO")}
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: "8px",
+                      background: "rgba(255,107,107,0.1)",
+                      border: "1px solid rgba(255,107,107,0.3)",
+                      color: "#ff6b6b",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                    title="Recusar Convite"
+                  >
+                    <XCircle size={14} /> Recusar
+                  </button>
+
+                  <button
+                    onClick={() => setModalFeedback({ encontroId: encontro.id, titulo: encontro.titulo })}
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: "8px",
+                      background: "rgba(96,165,250,0.1)",
+                      border: "1px solid rgba(96,165,250,0.3)",
+                      color: "#60a5fa",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                  >
+                    <MessageSquare size={14} /> Feedback
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {mensagemSucesso && (
+        <div style={{
+          position: "fixed",
+          bottom: "24px",
+          right: "24px",
+          background: "rgba(211,252,114,0.15)",
+          border: "1px solid #d3fc72",
+          color: "#d3fc72",
+          padding: "12px 20px",
+          borderRadius: "10px",
+          backdropFilter: "blur(10px)",
+          zIndex: 1000,
+          fontSize: "13px",
+          fontWeight: "500"
+        }}>
+          {mensagemSucesso}
+        </div>
+      )}
+
+      {modalFeedback && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.8)",
+          backdropFilter: "blur(10px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          padding: "20px"
+        }}>
+          <div style={{
+            background: "#121212",
+            borderRadius: "18px",
+            padding: "28px",
+            maxWidth: "500px",
+            width: "100%",
+            border: "1px solid rgba(255,255,255,0.1)"
+          }}>
+            <h3 style={{ color: "white", fontSize: "18px", fontWeight: "bold", marginBottom: "4px" }}>
+              Avaliar Encontro & Mentor
+            </h3>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px", marginBottom: "16px" }}>
+              {modalFeedback.titulo}
+            </p>
+
+            <form onSubmit={handleEnviarFeedback} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div>
+                <label style={{ display: "block", color: "rgba(255,255,255,0.6)", fontSize: "13px", marginBottom: "6px" }}>
+                  Nota do Encontro (1 a 5)
+                </label>
+                <select
+                  value={feedbackNota}
+                  onChange={(e) => setFeedbackNota(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    color: "white",
+                    outline: "none"
+                  }}
+                >
+                  <option value={5}>5 - Excelente</option>
+                  <option value={4}>4 - Muito Bom</option>
+                  <option value={3}>3 - Regular</option>
+                  <option value={2}>2 - Ruim</option>
+                  <option value={1}>1 - Muito Ruim</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: "block", color: "rgba(255,255,255,0.6)", fontSize: "13px", marginBottom: "6px" }}>
+                  Seu Comentário / Avaliação
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="Conte como foi o encontro, pontos positivos ou dúvidas restantes..."
+                  value={feedbackComentario}
+                  onChange={(e) => setFeedbackComentario(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    color: "white",
+                    fontSize: "13px",
+                    outline: "none"
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "8px" }}>
+                <button
+                  type="button"
+                  onClick={() => setModalFeedback(null)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    background: "transparent",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    color: "rgba(255,255,255,0.6)",
+                    cursor: "pointer"
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={feedbackEnviando}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    background: "#d3fc72",
+                    color: "black",
+                    fontWeight: "600",
+                    border: "none",
+                    cursor: "pointer"
+                  }}
+                >
+                  {feedbackEnviando ? "Enviando..." : "Enviar Feedback"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div style={{
         background: "rgba(255,255,255,0.03)",

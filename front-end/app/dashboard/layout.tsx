@@ -16,7 +16,7 @@ import {
   User as UserIcon
 } from "lucide-react"
 
-type UserRole = "ORIENTADOR" | "MENTOR" | "CALOURO"
+type UserRole = "ORIENTADOR" | "ADMINISTRADOR" | "MENTOR" | "CALOURO"
 
 interface User {
   id: string | number
@@ -147,6 +147,8 @@ export default function DashboardLayout({
               borderRadius: "50%",
               background: user.role === "ORIENTADOR" 
                 ? "linear-gradient(135deg, #d3fc72, #a8e04a)" 
+                : user.role === "ADMINISTRADOR"
+                ? "linear-gradient(135deg, #60a5fa, #2563eb)"
                 : user.role === "MENTOR"
                 ? "linear-gradient(135deg, #a78bfa, #5531cc)"
                 : "linear-gradient(135deg, #ff8787, #e03131)",
@@ -193,9 +195,10 @@ export default function DashboardLayout({
                   width: "6px",
                   height: "6px",
                   borderRadius: "50%",
-                  background: user.role === "ORIENTADOR" ? "#d3fc72" : user.role === "MENTOR" ? "#a78bfa" : "#ff8787"
+                  background: user.role === "ORIENTADOR" ? "#d3fc72" : user.role === "ADMINISTRADOR" ? "#60a5fa" : user.role === "MENTOR" ? "#a78bfa" : "#ff8787"
                 }} />
-                {user.role === "ORIENTADOR" ? "Orientador" : 
+                {user.role === "ORIENTADOR" ? "Orientador Geral" : 
+                 user.role === "ADMINISTRADOR" ? "Administrador" :
                  user.role === "MENTOR" ? "Mentor" : "Calouro"}
               </p>
             </div>
@@ -203,7 +206,7 @@ export default function DashboardLayout({
         </div>
 
         <nav style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}>
-          {user.role === "ORIENTADOR" && (
+          {(user.role === "ORIENTADOR" || user.role === "ADMINISTRADOR") && (
             <>
               <DashboardNavItem href="/dashboard" icon={<LayoutDashboard size={18} />} label="Visão Geral" />
               <DashboardNavItem href="/dashboard/mentores" icon={<UserCheck size={18} />} label="Mentores" />

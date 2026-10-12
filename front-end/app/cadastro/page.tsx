@@ -15,6 +15,8 @@ export default function Cadastro() {
     ra: "",
     senha: "",
     confirmarSenha: "",
+    role: "CALOURO" as "CALOURO" | "MENTOR",
+    especialidades: "",
   })
   const [erro, setErro] = useState("")
 
@@ -46,6 +48,8 @@ export default function Cadastro() {
           email: formData.email,
           ra: formData.ra,
           senha: formData.senha,
+          role: formData.role,
+          especialidades: formData.especialidades,
         }),
       })
 
@@ -61,7 +65,11 @@ export default function Cadastro() {
         localStorage.setItem('token', data.token)
       }
       localStorage.setItem('user', JSON.stringify(data.usuario))
-      router.push("/dashboard/calouro")
+      if (formData.role === "MENTOR") {
+        router.push("/dashboard/mentor")
+      } else {
+        router.push("/dashboard/calouro")
+      }
     } catch (error) {
       setErro('Erro ao conectar com o servidor. Verifique se o backend está ativo.')
     } finally {
@@ -118,17 +126,64 @@ export default function Cadastro() {
               marginBottom: "16px"
             }}>
               <UserPlus size={14} />
-              Cadastro de Ingressante
+              Cadastro Acadêmico
             </div>
             <h3 style={{ fontSize: "24px", fontWeight: "bold", color: "white" }}>
-              Criar Conta de Calouro
+              {formData.role === "MENTOR" ? "Criar Conta de Mentor" : "Criar Conta de Calouro"}
             </h3>
             <p style={{ color: "rgba(255,255,255,0.4)", marginTop: "4px", fontSize: "14px" }}>
-              Acesso exclusivo para novos alunos do curso
+              {formData.role === "MENTOR" 
+                ? "Acesso para veteranos que desejam orientar ingressantes"
+                : "Acesso exclusivo para novos alunos do curso"}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div>
+              <label style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: "500",
+                color: "rgba(255,255,255,0.6)",
+                marginBottom: "8px"
+              }}>
+                Perfil de Acesso
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: "CALOURO" })}
+                  style={{
+                    padding: "10px",
+                    borderRadius: "10px",
+                    border: formData.role === "CALOURO" ? "1px solid #d3fc72" : "1px solid rgba(255,255,255,0.1)",
+                    background: formData.role === "CALOURO" ? "rgba(211,252,114,0.15)" : "rgba(255,255,255,0.03)",
+                    color: formData.role === "CALOURO" ? "#d3fc72" : "rgba(255,255,255,0.6)",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    fontWeight: "600"
+                  }}
+                >
+                  Calouro (Ingressante)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: "MENTOR" })}
+                  style={{
+                    padding: "10px",
+                    borderRadius: "10px",
+                    border: formData.role === "MENTOR" ? "1px solid #d3fc72" : "1px solid rgba(255,255,255,0.1)",
+                    background: formData.role === "MENTOR" ? "rgba(211,252,114,0.15)" : "rgba(255,255,255,0.03)",
+                    color: formData.role === "MENTOR" ? "#d3fc72" : "rgba(255,255,266,0.6)",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    fontWeight: "600"
+                  }}
+                >
+                  Mentor (Veterano)
+                </button>
+              </div>
+            </div>
             <div>
               <label style={{
                 display: "block",
@@ -243,6 +298,36 @@ export default function Cadastro() {
                 required
               />
             </div>
+
+            {formData.role === "MENTOR" && (
+              <div>
+                <label style={{
+                  display: "block",
+                  fontSize: "13px",
+                  fontWeight: "500",
+                  color: "rgba(255,255,255,0.6)",
+                  marginBottom: "6px"
+                }}>
+                  Especialidades / Áreas de Conhecimento
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Programação Web, Estruturas de Dados, Cálculo"
+                  style={{
+                    width: "100%",
+                    padding: "10px 14px",
+                    borderRadius: "10px",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: "white",
+                    fontSize: "14px",
+                    outline: "none"
+                  }}
+                  value={formData.especialidades}
+                  onChange={(e) => setFormData({ ...formData, especialidades: e.target.value })}
+                />
+              </div>
+            )}
 
             <div>
               <label style={{

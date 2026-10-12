@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Shield, GraduationCap, Users, UserCheck, UserPlus, ArrowRight } from "lucide-react"
 import styles from "./page.module.css"
 
-type UserRole = "ORIENTADOR" | "MENTOR" | "CALOURO"
+type UserRole = "ORIENTADOR" | "ADMINISTRADOR" | "MENTOR" | "CALOURO"
 
 export default function Home() {
   const router = useRouter()
@@ -56,7 +56,7 @@ export default function Home() {
       localStorage.setItem('user', JSON.stringify(data.usuario))
 
       const role = data.usuario.role
-      if (role === "ORIENTADOR") {
+      if (role === "ORIENTADOR" || role === "ADMINISTRADOR") {
         router.push("/dashboard")
       } else if (role === "MENTOR") {
         router.push("/dashboard/mentor")
@@ -69,14 +69,6 @@ export default function Home() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const preencherAdmin = () => {
-    setFormData({
-      ra: "quezia@unicap.br",
-      senha: "2011",
-      role: "ORIENTADOR"
-    })
   }
 
   return (
@@ -204,7 +196,10 @@ export default function Home() {
                   Identificar automaticamente ou selecionar
                 </option>
                 <option value="ORIENTADOR">
-                  Orientador / Administrador
+                  Orientador Geral
+                </option>
+                <option value="ADMINISTRADOR">
+                  Administrador
                 </option>
                 <option value="MENTOR">
                   Mentor
@@ -213,32 +208,6 @@ export default function Home() {
                   Calouro
                 </option>
               </select>
-            </div>
-
-            <div style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "10px",
-              background: "rgba(255,255,255,0.02)",
-              borderRadius: "10px",
-              border: "1px solid rgba(255,255,255,0.05)"
-            }}>
-              <button
-                type="button"
-                onClick={preencherAdmin}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "#d3fc72",
-                  fontSize: "12px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px"
-                }}
-              >
-                Preencher Administrador (Quezia) <ArrowRight size={14} />
-              </button>
             </div>
 
             <button
