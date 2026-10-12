@@ -1,4 +1,4 @@
-# Padawan ON
+# SGA - 
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/seu-usuario/padawan-on)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -49,7 +49,7 @@
 
 ## Sobre o Projeto
 
-O **Padawan ON** e um ecossistema projetado para mitigar a evasao universitaria e acelerar a adaptacao academica e social dos novos alunos de Ciencia da Computacao. A plataforma conecta de forma organizada **Orientadores**, **Mentores (veteranos)** e **Calouros (ingressantes)**, provendo visibilidade analitica em tempo real, registros de encontros, biblioteca de recursos, controle de assiduidade e remocao completa de entidades.
+O **SGA** e um ecossistema projetado para mitigar a evasao universitaria e acelerar a adaptacao academica e social dos novos alunos de Ciencia da Computacao. A plataforma conecta de forma organizada **Orientadores**, **Mentores (veteranos)** e **Calouros (ingressantes)**, provendo visibilidade analitica em tempo real, registros de encontros, biblioteca de recursos, controle de assiduidade e remocao completa de entidades.
 
 ### Objetivos
 
