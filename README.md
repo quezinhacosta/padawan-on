@@ -1,4 +1,4 @@
-# Padawan ON
+# SGA - 
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/seu-usuario/padawan-on)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -15,7 +15,7 @@
 
 ## Indice
 
-- [Padawan ON](#padawan-on)
+- [SGA -](#sga--)
   - [Indice](#indice)
   - [Sobre o Projeto](#sobre-o-projeto)
     - [Objetivos](#objetivos)
@@ -23,9 +23,11 @@
     - [Frontend](#frontend)
     - [Backend](#backend)
   - [Funcionalidades por Perfil](#funcionalidades-por-perfil)
-    - [1. Para Administradores](#1-para-administradores)
-    - [2. Para Mentores (Veteranos)](#2-para-mentores-veteranos)
-    - [3. Para Calouros (Ingressantes)](#3-para-calouros-ingressantes)
+    - [1. Para o Orientador Geral](#1-para-o-orientador-geral)
+    - [2. Para os Administradores](#2-para-os-administradores)
+    - [3. Para Mentores (Veteranos)](#3-para-mentores-veteranos)
+    - [4. Para Calouros (Ingressantes)](#4-para-calouros-ingressantes)
+  - [Sistema de Micro-Chat e Feedbacks Integrados](#sistema-de-micro-chat-e-feedbacks-integrados)
   - [Cadastro e Credenciais](#cadastro-e-credenciais)
   - [Pre-requisitos](#pre-requisitos)
   - [Instalacao e Execucao](#instalacao-e-execucao)
@@ -37,6 +39,8 @@
   - [Documentacao da API REST](#documentacao-da-api-rest)
     - [Autenticacao (`/api/auth`)](#autenticacao-apiauth)
     - [Dashboard \& Metricas (`/api/dashboard`)](#dashboard--metricas-apidashboard)
+    - [Micro-Chat \& Mensagens (`/api/mensagens`)](#micro-chat--mensagens-apimensagens)
+    - [Administradores (`/api/administradores`)](#administradores-apiadministradores)
     - [Mentores (`/api/mentores`)](#mentores-apimentores)
     - [Calouros (`/api/calouros`)](#calouros-apicalouros)
     - [Grupos (`/api/grupos`)](#grupos-apigrupos)
@@ -48,7 +52,7 @@
 
 ## Sobre o Projeto
 
-O **Padawan ON** e um ecossistema projetado para mitigar a evasao universitaria e acelerar a adaptacao academica e social dos novos alunos de Ciencia da Computacao. A plataforma conecta de forma organizada **Administradores**, **Mentores (veteranos)** e **Calouros (ingressantes)**, provendo visibilidade analitica em tempo real, registros de encontros, biblioteca de recursos, controle de assiduidade e remocao completa de entidades.
+O **SGA** e um ecossistema projetado para mitigar a evasao universitaria e acelerar a adaptacao academica e social dos novos alunos de Ciencia da Computacao. A plataforma conecta de forma organizada **Orientadores**, **Mentores (veteranos)** e **Calouros (ingressantes)**, provendo visibilidade analitica em tempo real, registros de encontros, biblioteca de recursos, controle de assiduidade e remocao completa de entidades.
 
 ### Objetivos
 
