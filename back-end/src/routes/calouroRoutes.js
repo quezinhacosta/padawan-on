@@ -50,7 +50,7 @@ router.get('/:id', (req, res) => {
   }
 });
 
-router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.post('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     const { nomeCompleto, nomeUsuario, ra, email, senha = '123456', curso = 'Ciência da Computação', periodo = '1º Período' } = req.body;
 
@@ -102,7 +102,7 @@ router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
   }
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR', 'CALOURO'), (req, res) => {
   try {
     const { curso, periodo } = req.body;
     updateCalouro(req.params.id, { curso, periodo });
@@ -112,7 +112,7 @@ router.put('/:id', (req, res) => {
   }
 });
 
-router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.delete('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     deleteCalouro(req.params.id);
     logAtividade({

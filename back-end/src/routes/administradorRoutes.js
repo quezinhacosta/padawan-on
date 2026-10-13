@@ -10,6 +10,8 @@ const {
   createUsuario,
   getUsuarioByRA,
   getUsuarioByEmail,
+  getUsuarioByNomeUsuario,
+  getUsuarioById,
   logAtividade 
 } = require('../database');
 const { autenticarToken, autorizarRoles } = require('../middleware/auth');
@@ -49,27 +51,43 @@ router.post('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), async (req, res)
       cargo = 'Líder / Administrador de Grupo' 
     } = req.body;
 
-    if (!nomeCompleto || !ra || !email) {
+    const cleanNome = (nomeCompleto || '').trim();
+    const cleanRa = (ra || '').trim();
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    if (!cleanNome || !cleanRa || !cleanEmail) {
       return res.status(400).json({ error: 'Nome completo, RA e e-mail são obrigatórios' });
     }
 
-    if (getUsuarioByRA(ra)) {
+    if (getUsuarioByRA(cleanRa)) {
       return res.status(400).json({ error: 'RA já cadastrado no sistema' });
     }
 
-    if (getUsuarioByEmail(email)) {
+    if (getUsuarioByEmail(cleanEmail)) {
       return res.status(400).json({ error: 'E-mail já cadastrado no sistema' });
     }
 
+    let username = (nomeUsuario || '').trim();
+    if (!username) {
+      const base = cleanEmail.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '') || `admin_${cleanRa}`;
+      username = base;
+      if (getUsuarioByNomeUsuario(username)) {
+        username = `${base}_${cleanRa}`;
+      }
+    } else {
+      if (getUsuarioByNomeUsuario(username)) {
+        return res.status(400).json({ error: 'Nome de usuário já está em uso' });
+      }
+    }
+
     const salt = bcrypt.genSaltSync(10);
-    const senhaHash = bcrypt.hashSync(senha, salt);
-    const username = nomeUsuario || email.split('@')[0];
+    const senhaHash = bcrypt.hashSync(senha || 'admin', salt);
 
     const resultUsuario = createUsuario({
       nomeUsuario: username,
-      nomeCompleto,
-      email,
-      ra,
+      nomeCompleto: cleanNome,
+      email: cleanEmail,
+      ra: cleanRa,
       senhaHash,
       role: 'ADMINISTRADOR',
       ativo: 1
@@ -78,14 +96,14 @@ router.post('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), async (req, res)
     const usuarioId = resultUsuario.lastInsertRowid;
     const resultAdmin = createAdministrador({
       usuarioId,
-      departamento,
-      cargo
+      departamento: (departamento || 'Ciência da Computação').trim(),
+      cargo: (cargo || 'Líder / Administrador de Grupo').trim()
     });
 
     logAtividade({
       usuarioId: req.usuario.id,
       tipo: 'ADMINISTRADOR_CRIADO',
-      descricao: `Administrador ${nomeCompleto} cadastrado com sucesso.`
+      descricao: `Administrador ${cleanNome} cadastrado com sucesso.`
     });
 
     res.status(201).json({
@@ -101,6 +119,18 @@ router.post('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), async (req, res)
 
 router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
+    const admin = getAdministradorById(req.params.id);
+    if (!admin) {
+      return res.status(404).json({ error: 'Administrador não encontrado' });
+    }
+
+    if (req.usuario.role === 'ADMINISTRADOR') {
+      const usuarioAlvo = getUsuarioById(admin.usuario_id);
+      if (usuarioAlvo && usuarioAlvo.role === 'ORIENTADOR') {
+        return res.status(403).json({ error: 'Administradores não têm permissão para alterar o orientador' });
+      }
+    }
+
     const { departamento, cargo } = req.body;
     updateAdministrador(req.params.id, { departamento, cargo });
 
@@ -121,6 +151,13 @@ router.delete('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) 
     const admin = getAdministradorById(req.params.id);
     if (!admin) {
       return res.status(404).json({ error: 'Administrador não encontrado' });
+    }
+
+    if (req.usuario.role === 'ADMINISTRADOR') {
+      const usuarioAlvo = getUsuarioById(admin.usuario_id);
+      if (usuarioAlvo && usuarioAlvo.role === 'ORIENTADOR') {
+        return res.status(403).json({ error: 'Administradores não têm permissão para remover o orientador' });
+      }
     }
 
     deleteAdministrador(req.params.id);

@@ -20,7 +20,7 @@ router.get('/', (req, res) => {
   }
 });
 
-router.post('/', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
+router.post('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR', 'MENTOR'), (req, res) => {
   try {
     const { titulo, tipo, descricao, url } = req.body;
 
@@ -52,7 +52,7 @@ router.post('/', autorizarRoles('ORIENTADOR', 'MENTOR'), (req, res) => {
   }
 });
 
-router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.delete('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     deleteRecurso(req.params.id);
     res.json({ success: true, message: 'Recurso excluído com sucesso' });

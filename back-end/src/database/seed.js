@@ -28,26 +28,21 @@ async function seed() {
   const salt = bcrypt.genSaltSync(10);
   const senhaHash = bcrypt.hashSync('2011', salt);
 
-  const adminUserRes = createUsuario({
+  const orientadorUserRes = createUsuario({
     nomeUsuario: 'quezia',
     nomeCompleto: 'Quezia',
     email: 'quezia@unicap.br',
     ra: '2011',
     senhaHash,
-    role: 'ADMINISTRADOR',
+    role: 'ORIENTADOR',
     ativo: 1
   });
 
-  const usuarioId = adminUserRes.lastInsertRowid;
-
-  db.prepare(`
-    INSERT INTO administradores (usuario_id, departamento, cargo)
-    VALUES (?, 'Ciência da Computação', 'Administrador Geral')
-  `).run(usuarioId);
+  const usuarioId = orientadorUserRes.lastInsertRowid;
 
   db.prepare(`
     INSERT INTO orientadores (usuario_id, departamento, cargo)
-    VALUES (?, 'Ciência da Computação', 'Orientador / Administrador')
+    VALUES (?, 'Ciência da Computação', 'Orientador Geral')
   `).run(usuarioId);
 }
 

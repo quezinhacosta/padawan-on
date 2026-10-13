@@ -228,6 +228,8 @@ export default function ConfiguracoesPage() {
                 borderRadius: "50%",
                 background: user?.role === "ORIENTADOR" 
                   ? "linear-gradient(135deg, #d3fc72, #a8e04a)" 
+                  : user?.role === "ADMINISTRADOR"
+                  ? "linear-gradient(135deg, #60a5fa, #2563eb)"
                   : user?.role === "MENTOR"
                   ? "linear-gradient(135deg, #a78bfa, #5531cc)"
                   : "linear-gradient(135deg, #ff8787, #e03131)",

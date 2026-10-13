@@ -14,6 +14,7 @@ const {
   getMentorByUsuarioId,
   getCalouroByUsuarioId,
   getAdministradorByUsuarioId,
+  getOrientadorByUsuarioId,
   logAtividade 
 } = require('../database');
 const { autenticarToken, JWT_SECRET } = require('../middleware/auth');
@@ -48,9 +49,12 @@ router.post('/login', async (req, res) => {
     }
 
     if (role && usuario.role !== role) {
-      return res.status(403).json({ 
-        error: `Perfil selecionado (${role}) difere do perfil cadastrado (${usuario.role})` 
-      });
+      const isAdmOrOrientador = (usuario.role === 'ORIENTADOR' && role === 'ADMINISTRADOR');
+      if (!isAdmOrOrientador) {
+        return res.status(403).json({ 
+          error: `Perfil selecionado (${role}) difere do perfil cadastrado (${usuario.role})` 
+        });
+      }
     }
 
     const token = jwt.sign(
@@ -66,6 +70,8 @@ router.post('/login', async (req, res) => {
       detalhesPerfil = getCalouroByUsuarioId(usuario.id);
     } else if (usuario.role === 'ADMINISTRADOR') {
       detalhesPerfil = getAdministradorByUsuarioId(usuario.id);
+    } else if (usuario.role === 'ORIENTADOR') {
+      detalhesPerfil = getOrientadorByUsuarioId(usuario.id);
     }
 
     const { senha_hash, ...usuarioSemSenha } = usuario;
@@ -201,6 +207,8 @@ router.get('/me', autenticarToken, (req, res) => {
     detalhes = getCalouroByUsuarioId(req.usuario.id);
   } else if (req.usuario.role === 'ADMINISTRADOR') {
     detalhes = getAdministradorByUsuarioId(req.usuario.id);
+  } else if (req.usuario.role === 'ORIENTADOR') {
+    detalhes = getOrientadorByUsuarioId(req.usuario.id);
   }
 
   res.json({

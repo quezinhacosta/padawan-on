@@ -70,8 +70,12 @@ export default function AdministradoresAdminPage() {
       })
       if (res.ok) {
         setAdministradores(administradores.filter(a => a.id !== id))
+      } else {
+        const data = await res.json()
+        alert(data.message || data.error || 'Erro ao excluir administrador.')
       }
     } catch (err) {
+      alert('Erro de conexão ao excluir administrador.')
     }
   }
 
@@ -94,7 +98,7 @@ export default function AdministradoresAdminPage() {
 
       const data = await res.json()
       if (!res.ok) {
-        setErro(data.error || 'Erro ao cadastrar administrador.')
+        setErro(data.message || data.error || 'Erro ao cadastrar administrador.')
         setIsSubmitting(false)
         return
       }

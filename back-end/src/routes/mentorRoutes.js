@@ -53,7 +53,7 @@ router.get('/:id', (req, res) => {
   }
 });
 
-router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.post('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     const { nomeCompleto, nomeUsuario, ra, email, senha = '123456', maxCalouros = 5, especialidades = '' } = req.body;
 
@@ -106,8 +106,14 @@ router.post('/', autorizarRoles('ORIENTADOR'), (req, res) => {
   }
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR', 'MENTOR'), (req, res) => {
   try {
+    if (req.usuario.role === 'MENTOR') {
+      const meuMentor = getMentorByUsuarioId(req.usuario.id);
+      if (!meuMentor || meuMentor.id !== Number(req.params.id)) {
+        return res.status(403).json({ error: 'Você só pode editar seu próprio perfil de mentor' });
+      }
+    }
     const { disponivel, maxCalouros, especialidades } = req.body;
     updateMentor(req.params.id, {
       disponivel: disponivel !== undefined ? (disponivel ? 1 : 0) : undefined,
@@ -133,7 +139,7 @@ router.patch('/:id/disponibilidade', (req, res) => {
   }
 });
 
-router.delete('/:id', autorizarRoles('ORIENTADOR'), (req, res) => {
+router.delete('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
     deleteMentor(req.params.id);
     logAtividade({

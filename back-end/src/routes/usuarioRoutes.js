@@ -36,6 +36,15 @@ router.get('/:id', (req, res) => {
 
 router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
+    const usuarioAlvo = getUsuarioById(req.params.id);
+    if (!usuarioAlvo) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    if (req.usuario.role === 'ADMINISTRADOR' && usuarioAlvo.role === 'ORIENTADOR') {
+      return res.status(403).json({ error: 'Administradores não têm permissão para alterar o orientador' });
+    }
+
     const { nomeCompleto, nomeUsuario, email, fotoPerfil, ativo, novaSenha } = req.body;
     let senhaHash = undefined;
 
@@ -67,6 +76,15 @@ router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => 
 
 router.delete('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
+    const usuarioAlvo = getUsuarioById(req.params.id);
+    if (!usuarioAlvo) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    if (req.usuario.role === 'ADMINISTRADOR' && usuarioAlvo.role === 'ORIENTADOR') {
+      return res.status(403).json({ error: 'Administradores não têm permissão para remover o orientador' });
+    }
+
     deleteUsuario(req.params.id);
     logAtividade({
       usuarioId: req.usuario.id,

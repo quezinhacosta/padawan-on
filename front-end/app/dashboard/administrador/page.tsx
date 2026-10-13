@@ -159,15 +159,15 @@ export default function AdministradorPainelPage() {
               </tr>
             </thead>
             <tbody>
-              ${rel.frequenciaPorCalouro.map((c: any) => `
+              ${(((rel.frequenciaPorCalouro || rel.calouros || []) as any[]).map((c: any) => `
                 <tr>
                   <td>${c.nome}</td>
                   <td>${c.ra}</td>
                   <td>${c.presencas}</td>
-                  <td>${c.total_encontros}</td>
-                  <td><strong>${c.taxa_frequencia}%</strong></td>
+                  <td>${c.total_encontros ?? c.totalEncontros ?? 0}</td>
+                  <td><strong>${c.taxa_frequencia ?? c.porcentagemEngajamento ?? 0}%</strong></td>
                 </tr>
-              `).join('')}
+              `).join(''))}
             </tbody>
           </table>
           <script>window.onload = function() { window.print(); }</script>

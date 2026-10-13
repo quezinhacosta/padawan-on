@@ -108,7 +108,7 @@ export default function MentoresAdminPage() {
 
       const data = await res.json()
       if (!res.ok) {
-        setErro(data.error || 'Erro ao cadastrar mentor.')
+        setErro(data.message || data.error || 'Erro ao cadastrar mentor.')
         setIsSubmitting(false)
         return
       }

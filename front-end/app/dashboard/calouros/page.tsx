@@ -97,7 +97,7 @@ export default function CalourosAdminPage() {
 
       const data = await res.json()
       if (!res.ok) {
-        setErro(data.error || 'Erro ao cadastrar calouro.')
+        setErro(data.message || data.error || 'Erro ao cadastrar calouro.')
         setIsSubmitting(false)
         return
       }

@@ -102,6 +102,11 @@ function getUsuarioByEmail(email) {
   return stmt.get(email);
 }
 
+function getUsuarioByNomeUsuario(nomeUsuario) {
+  const stmt = db.prepare('SELECT * FROM usuarios WHERE nome_usuario = ?');
+  return stmt.get(nomeUsuario);
+}
+
 function getUsuarioById(id) {
   const stmt = db.prepare('SELECT id, nome_usuario, nome_completo, email, ra, role, foto_perfil, ativo, created_at FROM usuarios WHERE id = ?');
   return stmt.get(id);
@@ -551,7 +556,12 @@ function getGrupoById(id) {
 }
 
 function getOrientadorByUsuarioId(usuarioId) {
-  const stmt = db.prepare('SELECT * FROM orientadores WHERE usuario_id = ?');
+  const stmt = db.prepare(`
+    SELECT o.*, u.nome_completo as nome, u.nome_usuario, u.email, u.ra, u.ativo, u.foto_perfil
+    FROM orientadores o
+    JOIN usuarios u ON u.id = o.usuario_id
+    WHERE o.usuario_id = ?
+  `);
   return stmt.get(usuarioId);
 }
 
@@ -710,13 +720,21 @@ function getGrupoRelatorioFrequencia(grupoId) {
       descricao: grupo.descricao,
       status: grupo.status,
       mentor_nome: grupo.mentor_nome,
-      mentor_email: grupo.mentor_email
+      mentor_email: grupo.mentor_email,
+      admin_nome: grupo.admin_nome
     },
     totalEncontros: encontros.length,
     encontrosRealizados: encontros.filter(e => e.status === 'REALIZADO' || new Date(e.data_hora) <= new Date()).length,
+    totalEncontrosRealizados: encontros.filter(e => e.status === 'REALIZADO' || new Date(e.data_hora) <= new Date()).length,
     totalCalouros: calourosReport.length,
     taxaEngajamentoGeral,
+    porcentagemPresencaGeral: taxaEngajamentoGeral,
     calouros: calourosReport,
+    frequenciaPorCalouro: calourosReport.map(c => ({
+      ...c,
+      total_encontros: c.totalEncontros,
+      taxa_frequencia: c.porcentagemEngajamento
+    })),
     encontros: encontros.map(e => ({
       id: e.id,
       titulo: e.titulo,
@@ -1067,6 +1085,7 @@ module.exports = {
   getUsuarioByIdentifier,
   getUsuarioByRA,
   getUsuarioByEmail,
+  getUsuarioByNomeUsuario,
   getUsuarioById,
   getAllUsuarios,
   createUsuario,

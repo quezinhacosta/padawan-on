@@ -9,6 +9,7 @@ const {
   removeCalouroFromGrupo, 
   deleteGrupo,
   getGrupoRelatorioFrequencia,
+  getAdministradorByUsuarioId,
   logAtividade 
 } = require('../database');
 const { autenticarToken, autorizarRoles } = require('../middleware/auth');
@@ -19,7 +20,8 @@ router.get('/', (req, res) => {
   try {
     let grupos;
     if (req.usuario.role === 'ADMINISTRADOR') {
-      grupos = getAllGrupos({ adminId: req.usuario.id });
+      const adminObj = getAdministradorByUsuarioId(req.usuario.id);
+      grupos = getAllGrupos({ adminId: adminObj ? adminObj.id : req.usuario.id });
     } else if (req.usuario.role === 'MENTOR') {
       grupos = getAllGrupos({ mentorId: req.usuario.id });
     } else {
@@ -33,20 +35,20 @@ router.get('/', (req, res) => {
 
 router.get('/:id/relatorio-frequencia', (req, res) => {
   try {
+    const g = getGrupoById(req.params.id);
+    if (!g) {
+      return res.status(404).json({ error: 'Grupo não encontrado' });
+    }
+
     if (req.usuario.role === 'ADMINISTRADOR') {
-      const g = getGrupoById(req.params.id);
-      if (!g || (g.admin_id && g.admin_id !== req.usuario.id)) {
-        const adminObj = getAdministradorByUsuarioId(req.usuario.id);
-        if (!adminObj || g.admin_id !== adminObj.id) {
-          return res.status(403).json({ error: 'Acesso negado aos relatórios deste grupo' });
-        }
+      const adminObj = getAdministradorByUsuarioId(req.usuario.id);
+      const isOwner = (g.admin_id && ((adminObj && g.admin_id === adminObj.id) || g.admin_id === req.usuario.id));
+      if (!isOwner) {
+        return res.status(403).json({ error: 'Acesso negado aos relatórios deste grupo' });
       }
     }
 
     const relatorio = getGrupoRelatorioFrequencia(req.params.id);
-    if (!relatorio) {
-      return res.status(404).json({ error: 'Grupo não encontrado' });
-    }
     res.json(relatorio);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao gerar relatório do grupo', message: error.message });
@@ -61,7 +63,8 @@ router.get('/:id', (req, res) => {
     }
     if (req.usuario.role === 'ADMINISTRADOR') {
       const adminObj = getAdministradorByUsuarioId(req.usuario.id);
-      if (grupo.admin_id && adminObj && grupo.admin_id !== adminObj.id) {
+      const isOwner = (grupo.admin_id && ((adminObj && grupo.admin_id === adminObj.id) || grupo.admin_id === req.usuario.id));
+      if (!isOwner) {
         return res.status(403).json({ error: 'Acesso restrito ao grupo atribuído' });
       }
     }
@@ -115,8 +118,21 @@ router.post('/', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   }
 });
 
-router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR', 'MENTOR'), (req, res) => {
+router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
+    const g = getGrupoById(req.params.id);
+    if (!g) {
+      return res.status(404).json({ error: 'Grupo não encontrado' });
+    }
+
+    if (req.usuario.role === 'ADMINISTRADOR') {
+      const adminObj = getAdministradorByUsuarioId(req.usuario.id);
+      const isOwner = (g.admin_id && ((adminObj && g.admin_id === adminObj.id) || g.admin_id === req.usuario.id));
+      if (!isOwner) {
+        return res.status(403).json({ error: 'Acesso negado para gerenciar este grupo' });
+      }
+    }
+
     const { nome, mentorId, adminId, descricao, status } = req.body;
     updateGrupo(req.params.id, {
       nome,
@@ -134,6 +150,19 @@ router.put('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR', 'MENTOR'), (req
 
 router.post('/:id/calouros', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
+    const g = getGrupoById(req.params.id);
+    if (!g) {
+      return res.status(404).json({ error: 'Grupo não encontrado' });
+    }
+
+    if (req.usuario.role === 'ADMINISTRADOR') {
+      const adminObj = getAdministradorByUsuarioId(req.usuario.id);
+      const isOwner = (g.admin_id && ((adminObj && g.admin_id === adminObj.id) || g.admin_id === req.usuario.id));
+      if (!isOwner) {
+        return res.status(403).json({ error: 'Acesso negado para alterar este grupo' });
+      }
+    }
+
     const { calouroId } = req.body;
     if (!calouroId) {
       return res.status(400).json({ error: 'ID do calouro é obrigatório' });
@@ -148,6 +177,19 @@ router.post('/:id/calouros', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req
 
 router.delete('/:id/calouros/:calouroId', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
+    const g = getGrupoById(req.params.id);
+    if (!g) {
+      return res.status(404).json({ error: 'Grupo não encontrado' });
+    }
+
+    if (req.usuario.role === 'ADMINISTRADOR') {
+      const adminObj = getAdministradorByUsuarioId(req.usuario.id);
+      const isOwner = (g.admin_id && ((adminObj && g.admin_id === adminObj.id) || g.admin_id === req.usuario.id));
+      if (!isOwner) {
+        return res.status(403).json({ error: 'Acesso negado para alterar este grupo' });
+      }
+    }
+
     removeCalouroFromGrupo(req.params.id, req.params.calouroId);
     res.json({ success: true, message: 'Calouro removido do grupo com sucesso' });
   } catch (error) {
@@ -157,6 +199,19 @@ router.delete('/:id/calouros/:calouroId', autorizarRoles('ORIENTADOR', 'ADMINIST
 
 router.delete('/:id', autorizarRoles('ORIENTADOR', 'ADMINISTRADOR'), (req, res) => {
   try {
+    const g = getGrupoById(req.params.id);
+    if (!g) {
+      return res.status(404).json({ error: 'Grupo não encontrado' });
+    }
+
+    if (req.usuario.role === 'ADMINISTRADOR') {
+      const adminObj = getAdministradorByUsuarioId(req.usuario.id);
+      const isOwner = (g.admin_id && ((adminObj && g.admin_id === adminObj.id) || g.admin_id === req.usuario.id));
+      if (!isOwner) {
+        return res.status(403).json({ error: 'Acesso negado para remover este grupo' });
+      }
+    }
+
     deleteGrupo(req.params.id);
     logAtividade({
       usuarioId: req.usuario.id,
